@@ -1,0 +1,47 @@
+<!doctype html><html><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>01 — Vision & Why AYRNOW</title>
+<link rel="stylesheet" href="../assets/css/book.css"/>
+</head><body>
+<div class="layout">
+  <aside class="sidebar"><div id="nav"></div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="pill">Chapter 01</div>
+      <div class="pill">Rental OS thesis</div>
+    </div>
+
+    <h1>01 — Vision & Why AYRNOW Exists</h1>
+
+    <div class="card">
+      <h2>The problem</h2>
+      <p>Rent collection is often “digital” (Zillow, Zelle, Venmo), but management is still broken: multiple payers, partial payments, missing receipts, no unified ledger, and zero operational workflow.</p>
+
+      <h2>The thesis</h2>
+      <p><b>AYRNOW is a Rental Operating System</b> — one place for rent, leases, maintenance, safety, community, documents, taxes, and audit history.</p>
+
+      <div class="note">
+        <b>Simple-first:</b> Designed for small & medium landlords who want low typing, guided setup, and AI-prefill.
+      </div>
+
+      <div class="joke" style="margin-top:14px">
+        <b>Joke:</b> Spreadsheets are great… until they become your property manager. Then they start taking vacations. 🧾✈️
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What “Billion-dollar” means here</h2>
+      <ul>
+        <li>Expand from rent → utilities → insurance → services → commerce leases → land/farm leases</li>
+        <li>Be the system-of-record for property operations (not just payment rails)</li>
+        <li>Network effects: contractor marketplace + tenant identity + community safety</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+<script>
+fetch('../_nav.html').then(r=>r.text()).then(html=>{document.getElementById('nav').innerHTML=html; highlight()});
+function highlight(){document.querySelectorAll('.nav a').forEach(a=>{if(a.getAttribute('href')==='./01-vision.html')a.classList.add('active')})}
+</script>
+</body></html>

@@ -1,0 +1,36 @@
+<!doctype html><html><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>00 — How to use this book</title>
+<link rel="stylesheet" href="../assets/css/book.css"/>
+</head><body>
+<div class="layout">
+  <aside class="sidebar"><div id="nav"></div></aside>
+  <main class="main">
+    <div class="topbar">
+      <div class="pill">AYRNOW OS • Editing Guide</div>
+      <div class="pill">Branch: os-book-site-v1</div>
+    </div>
+    <h1>00 — How to use this book</h1>
+    <div class="card">
+      <h2>Goal</h2>
+      <p>This site is the living source. We keep adding pages until it reaches 160+ pages worth of content, then export to PDF.</p>
+      <h2>Editing rule</h2>
+      <ul>
+        <li>Everything you review gets included.</li>
+        <li>We add “MVP tags” at the end only.</li>
+        <li>We capture the actual development history (branch rebuild-hifi-v1 decisions, tech choices).</li>
+      </ul>
+      <h2>Later export options</h2>
+      <ul>
+        <li>Print to PDF from browser (quick)</li>
+        <li>Convert HTML → PDF using tooling (better)</li>
+      </ul>
+    </div>
+    <div class="joke"><b>Joke:</b> If this doc gets too long… good. That means the product is real. 😄</div>
+  </main>
+</div>
+<script>
+fetch('../_nav.html').then(r=>r.text()).then(html=>{document.getElementById('nav').innerHTML=html; highlight()});
+function highlight(){document.querySelectorAll('.nav a').forEach(a=>{if(a.getAttribute('href')==='./00-readme.html')a.classList.add('active')})}
+</script>
+</body></html>

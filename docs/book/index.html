@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AYRNOW OS Master Book</title>
+  <link rel="stylesheet" href="./assets/css/book.css"/>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div id="nav"></div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <div class="pill">AYRNOW Inc • Delaware C-Corp • Living OS</div>
+        <div class="pill">“Access your rental now”</div>
+      </div>
+
+      <h1>AYRNOW OS Master Book</h1>
+      <p class="muted">This is the editable “heart document” for AYRNOW. Website-first so we can refine forever and export to PDF later.</p>
+
+      <div class="card">
+        <h2>What you’ll get here</h2>
+        <ul>
+          <li>Full end-to-end app scenarios (Landlord ↔ Tenant ↔ Contractor ↔ Guard)</li>
+          <li>All flows we discussed: Invite → Verification → Lease → Living → History</li>
+          <li>Taxes, yearly statements, residency proofs, expense tracking</li>
+          <li>Architecture: Flutter + Spring Boot monolith + Postgres + AWS indexing + LLM future</li>
+          <li>Growth + Advertising guidelines + Billion-dollar vision narrative</li>
+        </ul>
+      </div>
+
+      <div class="note">
+        <b>Rule:</b> No MVP vs Phase split while writing. We write the full OS first, then tag MVP at the end.
+      </div>
+
+      <div class="joke" style="margin-top:14px">
+        <b>Quick joke:</b> A landlord walks into a spreadsheet… and never comes out. AYRNOW is the rescue team. 😄
+      </div>
+
+      <hr/>
+
+      <h2>Start here</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>00 — How to use this book</h3>
+          <p>How we edit, version, and export.</p>
+          <a href="./pages/00-readme.html">Open →</a>
+        </div>
+        <div class="card">
+          <h3>01 — Vision & Why AYRNOW</h3>
+          <p>Problem, thesis, and what “Rental OS” means.</p>
+          <a href="./pages/01-vision.html">Open →</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    fetch('./_nav.html').then(r=>r.text()).then(html=>{document.getElementById('nav').innerHTML=html.replaceAll('../','./')});
+  </script>
+</body>
+</html>
