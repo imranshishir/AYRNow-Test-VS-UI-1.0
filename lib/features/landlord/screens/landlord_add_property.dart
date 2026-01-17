@@ -4,7 +4,8 @@ class LandlordAddPropertyScreen extends StatefulWidget {
   const LandlordAddPropertyScreen({super.key});
 
   @override
-  State<LandlordAddPropertyScreen> createState() => _LandlordAddPropertyScreenState();
+  State<LandlordAddPropertyScreen> createState() =>
+      _LandlordAddPropertyScreenState();
 }
 
 class _LandlordAddPropertyScreenState extends State<LandlordAddPropertyScreen> {
@@ -26,15 +27,20 @@ class _LandlordAddPropertyScreenState extends State<LandlordAddPropertyScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          TextField(controller: _name, decoration: const InputDecoration(labelText: 'Property name')),
+          TextField(
+              controller: _name,
+              decoration: const InputDecoration(labelText: 'Property name')),
           const SizedBox(height: 12),
-          TextField(controller: _address, decoration: const InputDecoration(labelText: 'Address')),
+          TextField(
+              controller: _address,
+              decoration: const InputDecoration(labelText: 'Address')),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _type,
             decoration: const InputDecoration(labelText: 'Type'),
             items: const [
-              DropdownMenuItem(value: 'Residential', child: Text('Residential')),
+              DropdownMenuItem(
+                  value: 'Residential', child: Text('Residential')),
               DropdownMenuItem(value: 'Commercial', child: Text('Commercial')),
             ],
             onChanged: (v) => setState(() => _type = v ?? 'Residential'),

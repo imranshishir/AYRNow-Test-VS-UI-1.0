@@ -24,8 +24,10 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        enabledBorder:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+        focusedBorder:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         filled: true,
       ),
     );

@@ -60,7 +60,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
             ),
 
             const SizedBox(height: 16),
-            Text('Username / Email', style: Theme.of(context).textTheme.labelLarge),
+            Text('Username / Email',
+                style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
             TextField(
               controller: _email,
@@ -78,7 +79,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                 hintText: '••••••••',
                 suffixIcon: IconButton(
                   onPressed: () => setState(() => _obscure = !_obscure),
-                  icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  icon:
+                      Icon(_obscure ? Icons.visibility : Icons.visibility_off),
                 ),
               ),
             ),
@@ -98,7 +100,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                   child: OutlinedButton(
                     onPressed: () {
                       // quick role reset convenience
-                      ref.read(currentRoleProvider.notifier).state = UserRole.landlord;
+                      ref.read(currentRoleProvider.notifier).state =
+                          UserRole.landlord;
                     },
                     child: const Text('Reset role'),
                   ),

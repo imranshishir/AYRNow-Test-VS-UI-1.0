@@ -4,14 +4,19 @@ import 'package:ayrnow/ui/shared/switch_role_menu.dart';
 class LlUnitTenantsScreen extends StatelessWidget {
   final dynamic property;
   final dynamic unit;
-  const LlUnitTenantsScreen({super.key, required this.property, required this.unit});
+  const LlUnitTenantsScreen(
+      {super.key, required this.property, required this.unit});
 
   @override
   Widget build(BuildContext context) {
     final tenants = unit.tenantCount == 0
         ? const <_Tenant>[]
         : const [
-            _Tenant(name: 'Alex Johnson', phone: '(646) 202-3430', status: 'Active', balance: 0.0),
+            _Tenant(
+                name: 'Alex Johnson',
+                phone: '(646) 202-3430',
+                status: 'Active',
+                balance: 0.0),
           ];
 
     return Scaffold(
@@ -50,7 +55,11 @@ class _Tenant {
   final String phone;
   final String status;
   final double balance;
-  const _Tenant({required this.name, required this.phone, required this.status, required this.balance});
+  const _Tenant(
+      {required this.name,
+      required this.phone,
+      required this.status,
+      required this.balance});
 }
 
 class _Info extends StatelessWidget {
@@ -98,10 +107,12 @@ class _TenantCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(t.name, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 4),
-              Text('${t.status} • ${t.phone}', style: Theme.of(context).textTheme.bodyMedium),
+              Text('${t.status} • ${t.phone}',
+                  style: Theme.of(context).textTheme.bodyMedium),
             ]),
           ),
           Container(
@@ -112,7 +123,10 @@ class _TenantCard extends StatelessWidget {
             ),
             child: Text(
               t.balance > 0 ? '\$${t.balance.toStringAsFixed(2)} due' : 'Paid',
-              style: TextStyle(color: t.balance > 0 ? cs.onErrorContainer : cs.onPrimaryContainer),
+              style: TextStyle(
+                  color: t.balance > 0
+                      ? cs.onErrorContainer
+                      : cs.onPrimaryContainer),
             ),
           )
         ],

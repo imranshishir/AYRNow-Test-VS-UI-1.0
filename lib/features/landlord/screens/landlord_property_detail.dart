@@ -14,12 +14,18 @@ class LandlordPropertyDetailScreen extends StatelessWidget {
         children: [
           _Header(property: property),
           const SizedBox(height: 16),
-          Text('Units', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+          Text('Units',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           ...property.units.map((u) => Card(
                 child: ListTile(
-                  title: Text(u.label, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text(u.status + (u.tenant != null ? ' • ${u.tenant!.name}' : '')),
+                  title: Text(u.label,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text(u.status +
+                      (u.tenant != null ? ' • ${u.tenant!.name}' : '')),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).pushNamed(
                     '/landlord/unit/detail',
@@ -48,7 +54,9 @@ class _Header extends StatelessWidget {
             Container(
               width: 44,
               height: 44,
-              decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(12)),
               child: Icon(Icons.location_city, color: cs.onPrimaryContainer),
             ),
             const SizedBox(width: 12),
@@ -56,9 +64,11 @@ class _Header extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(property.type, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text(property.type,
+                      style: const TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
-                  Text(property.address, style: TextStyle(color: cs.onSurfaceVariant)),
+                  Text(property.address,
+                      style: TextStyle(color: cs.onSurfaceVariant)),
                 ],
               ),
             ),

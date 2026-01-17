@@ -1,62 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:ayrnow/features/tenant/screens/t_dashboard.dart';
+import 'package:ayrnow/features/tenant/screens/t_pay.dart';
+import 'package:ayrnow/features/tenant/screens/t_tickets.dart';
+import 'package:ayrnow/features/tenant/screens/t_profile.dart';
 
-class TenantHome extends StatelessWidget {
+class TenantHome extends StatefulWidget {
   const TenantHome({super.key});
 
   @override
+  State<TenantHome> createState() => _TenantHomeState();
+}
+
+class _TenantHomeState extends State<TenantHome> {
+  int _index = 0;
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-      children: [
-        Text('Your Home', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Rent Due', style: Theme.of(context).textTheme.labelLarge),
-                const SizedBox(height: 6),
-                Text('\$1,850', style: Theme.of(context).textTheme.headlineMedium),
-                const SizedBox(height: 6),
-                Text('Due in 5 days • Autopay OFF', style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo: Pay Rent')),
-                  ),
-                  child: const Text('Pay Rent'),
-                ),
-              ],
-            ),
+    final pages = const [
+      TenantDashboardScreen(),
+      TenantPayHomeScreen(),
+      TenantTicketsScreen(),
+      TenantProfileScreen(),
+    ];
+
+    return SafeArea(
+      child: Column(
+        children: [
+          Expanded(child: pages[_index]),
+          const Divider(height: 1),
+          NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (i) => setState(() => _index = i),
+            destinations: const [
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
+              NavigationDestination(icon: Icon(Icons.payments_outlined), selectedIcon: Icon(Icons.payments), label: 'Pay'),
+              NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build), label: 'Tickets'),
+              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+            ],
           ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.build_circle),
-            title: const Text('Maintenance'),
-            subtitle: const Text('2 open requests'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Demo: Maintenance')),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.chat_bubble_outline),
-            title: const Text('Messages'),
-            subtitle: const Text('Landlord replied 10m ago'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Demo: Messages')),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

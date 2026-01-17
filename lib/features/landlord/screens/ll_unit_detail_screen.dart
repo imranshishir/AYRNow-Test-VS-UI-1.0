@@ -5,7 +5,8 @@ import 'package:ayrnow/ui/shared/switch_role_menu.dart';
 class LlUnitDetailScreen extends StatelessWidget {
   final dynamic property;
   final dynamic unit;
-  const LlUnitDetailScreen({super.key, required this.property, required this.unit});
+  const LlUnitDetailScreen(
+      {super.key, required this.property, required this.unit});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,8 @@ class LlUnitDetailScreen extends StatelessWidget {
               children: [
                 Text(unit.label, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 6),
-                Text('Status: ${unit.status}', style: Theme.of(context).textTheme.bodyMedium),
+                Text('Status: ${unit.status}',
+                    style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -43,16 +45,16 @@ class LlUnitDetailScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-
           Text('Quick actions', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 10),
-
           _ActionCard(
             icon: Icons.group,
             title: 'View tenants',
             subtitle: 'See tenant list, rent status, and contact options.',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => LlUnitTenantsScreen(property: property, unit: unit)),
+              MaterialPageRoute(
+                  builder: (_) =>
+                      LlUnitTenantsScreen(property: property, unit: unit)),
             ),
           ),
           const SizedBox(height: 10),
@@ -97,7 +99,11 @@ class _ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  const _ActionCard({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _ActionCard(
+      {required this.icon,
+      required this.title,
+      required this.subtitle,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -124,11 +130,14 @@ class _ActionCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium),
+                  ]),
             ),
             const Icon(Icons.chevron_right),
           ],

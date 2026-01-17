@@ -35,24 +35,36 @@ class _LlAddPropertyScreenState extends State<LlAddPropertyScreen> {
           DropdownButtonFormField<String>(
             value: _type,
             items: const [
-              DropdownMenuItem(value: 'Residential', child: Text('Residential (apartments / homes)')),
-              DropdownMenuItem(value: 'Commercial', child: Text('Commercial (stores / offices)')),
+              DropdownMenuItem(
+                  value: 'Residential',
+                  child: Text('Residential (apartments / homes)')),
+              DropdownMenuItem(
+                  value: 'Commercial',
+                  child: Text('Commercial (stores / offices)')),
             ],
             onChanged: (v) => setState(() => _type = v ?? 'Residential'),
           ),
           const SizedBox(height: 14),
           Text('Property name', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
-          TextField(controller: _name, decoration: const InputDecoration(hintText: 'e.g., Harlem Heights')),
+          TextField(
+              controller: _name,
+              decoration:
+                  const InputDecoration(hintText: 'e.g., Harlem Heights')),
           const SizedBox(height: 14),
-          Text('City / Location', style: Theme.of(context).textTheme.labelLarge),
+          Text('City / Location',
+              style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 8),
-          TextField(controller: _city, decoration: const InputDecoration(hintText: 'e.g., Buffalo, NY')),
+          TextField(
+              controller: _city,
+              decoration: const InputDecoration(hintText: 'e.g., Buffalo, NY')),
           const SizedBox(height: 18),
           FilledButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Demo: property saved (next: connect to real data)')),
+                const SnackBar(
+                    content: Text(
+                        'Demo: property saved (next: connect to real data)')),
               );
               Navigator.of(context).pop();
             },

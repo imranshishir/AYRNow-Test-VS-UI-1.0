@@ -15,13 +15,21 @@ class LandlordPropertiesListScreen extends StatelessWidget {
           id: 'u1',
           label: 'Apt 2B',
           status: 'Occupied',
-          tenant: TenantModel(id: 't1', name: 'Sarah K', phone: '(555) 100-2000', leaseEnds: 'Aug 2026'),
+          tenant: TenantModel(
+              id: 't1',
+              name: 'Sarah K',
+              phone: '(555) 100-2000',
+              leaseEnds: 'Aug 2026'),
         ),
         UnitModel(
           id: 'u2',
           label: 'Apt 1A',
           status: 'Occupied',
-          tenant: TenantModel(id: 't2', name: 'Mike R', phone: '(555) 222-3333', leaseEnds: 'May 2026'),
+          tenant: TenantModel(
+              id: 't2',
+              name: 'Mike R',
+              phone: '(555) 222-3333',
+              leaseEnds: 'May 2026'),
         ),
         const UnitModel(id: 'u3', label: 'Apt 3C', status: 'Vacant'),
       ],
@@ -36,7 +44,11 @@ class LandlordPropertiesListScreen extends StatelessWidget {
           id: 's1',
           label: 'Store 12',
           status: 'Occupied',
-          tenant: TenantModel(id: 't3', name: 'Coffee Spot LLC', phone: '(555) 999-0000', leaseEnds: 'Dec 2027'),
+          tenant: TenantModel(
+              id: 't3',
+              name: 'Coffee Spot LLC',
+              phone: '(555) 999-0000',
+              leaseEnds: 'Dec 2027'),
         ),
         const UnitModel(id: 's2', label: 'Store 14', status: 'Vacant'),
       ],
@@ -48,7 +60,8 @@ class LandlordPropertiesListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Properties')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).pushNamed('/landlord/properties/add'),
+        onPressed: () =>
+            Navigator.of(context).pushNamed('/landlord/properties/add'),
         icon: const Icon(Icons.add),
         label: const Text('Add Property'),
       ),
@@ -60,11 +73,14 @@ class LandlordPropertiesListScreen extends StatelessWidget {
           final p = demo[i];
           return Card(
             child: ListTile(
-              title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: Text('${p.type} • ${p.address}\n${p.units.length} units'),
+              title: Text(p.name,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+              subtitle:
+                  Text('${p.type} • ${p.address}\n${p.units.length} units'),
               isThreeLine: true,
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).pushNamed('/landlord/properties/detail', arguments: p),
+              onTap: () => Navigator.of(context)
+                  .pushNamed('/landlord/properties/detail', arguments: p),
             ),
           );
         },

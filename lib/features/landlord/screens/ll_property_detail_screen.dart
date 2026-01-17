@@ -36,14 +36,17 @@ class LlPropertyDetailScreen extends StatelessWidget {
             icon: isCommercial ? Icons.storefront : Icons.apartment,
           ),
           const SizedBox(height: 14),
-          Text(isCommercial ? 'Stores' : 'Apartments', style: Theme.of(context).textTheme.titleMedium),
+          Text(isCommercial ? 'Stores' : 'Apartments',
+              style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 10),
           ...units.map((u) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _UnitTile(
                   unit: u,
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => LlUnitDetailScreen(property: property, unit: u)),
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            LlUnitDetailScreen(property: property, unit: u)),
                   ),
                 ),
               )),
@@ -59,13 +62,23 @@ class _Unit {
   final String status;
   final int tenantCount;
   final double balance;
-  const _Unit({required this.id, required this.label, required this.status, required this.tenantCount, required this.balance});
+  const _Unit(
+      {required this.id,
+      required this.label,
+      required this.status,
+      required this.tenantCount,
+      required this.balance});
 }
 
 class _HeaderCard extends StatelessWidget {
   final String title, subtitle, meta1, meta2;
   final IconData icon;
-  const _HeaderCard({required this.title, required this.subtitle, required this.meta1, required this.meta2, required this.icon});
+  const _HeaderCard(
+      {required this.title,
+      required this.subtitle,
+      required this.meta1,
+      required this.meta2,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +102,8 @@ class _HeaderCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 4),
               Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
@@ -142,34 +156,47 @@ class _UnitTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: vacant ? cs.tertiaryContainer : cs.secondaryContainer,
-              child: Icon(vacant ? Icons.home_outlined : Icons.person, size: 18, color: vacant ? cs.onTertiaryContainer : cs.onSecondaryContainer),
+              backgroundColor:
+                  vacant ? cs.tertiaryContainer : cs.secondaryContainer,
+              child: Icon(vacant ? Icons.home_outlined : Icons.person,
+                  size: 18,
+                  color: vacant
+                      ? cs.onTertiaryContainer
+                      : cs.onSecondaryContainer),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(unit.label, style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 4),
-                Text('${unit.status} • Tenants: ${unit.tenantCount}', style: Theme.of(context).textTheme.bodyMedium),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(unit.label,
+                        style: Theme.of(context).textTheme.titleSmall),
+                    const SizedBox(height: 4),
+                    Text('${unit.status} • Tenants: ${unit.tenantCount}',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                  ]),
             ),
             if (unit.balance > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   color: cs.errorContainer,
                 ),
-                child: Text('\$${unit.balance.toStringAsFixed(2)} due', style: TextStyle(color: cs.onErrorContainer)),
+                child: Text('\$${unit.balance.toStringAsFixed(2)} due',
+                    style: TextStyle(color: cs.onErrorContainer)),
               )
             else
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   color: cs.primaryContainer,
                 ),
-                child: Text('Paid', style: TextStyle(color: cs.onPrimaryContainer)),
+                child: Text('Paid',
+                    style: TextStyle(color: cs.onPrimaryContainer)),
               ),
             const SizedBox(width: 6),
             const Icon(Icons.chevron_right),
