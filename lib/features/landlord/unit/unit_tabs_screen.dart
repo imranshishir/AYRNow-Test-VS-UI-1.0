@@ -53,7 +53,7 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
       body: TabBarView(
         controller: _tab,
         children: [
-          _Overview(bundle: bundle),
+          _Overview(bundle: bundle, goToTab: (i) => _tab.animateTo(i)),
           RentBoardTab(bundle: bundle),
           MaintenanceInboxTab(bundle: bundle),
           ContractorsTab(bundle: bundle),
@@ -65,7 +65,8 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
 
 class _Overview extends StatelessWidget {
   final UnitBundle bundle;
-  const _Overview({required this.bundle});
+  final void Function(int) goToTab;
+  const _Overview({required this.bundle, required this.goToTab});
 
   @override
   Widget build(BuildContext context) {
@@ -125,19 +126,19 @@ class _Overview extends StatelessWidget {
                 leading: const Icon(Icons.attach_money),
                 title: const Text('Go to Rent Board'),
                 subtitle: const Text('Ledger, collections, receipts'),
-                onTap: () => DefaultTabController.of(context)?.animateTo(1),
+                onTap: () => goToTab(1),
               ),
               ListTile(
                 leading: const Icon(Icons.build_outlined),
                 title: const Text('Go to Maintenance'),
                 subtitle: const Text('Tickets, assignments, status updates'),
-                onTap: () => DefaultTabController.of(context)?.animateTo(2),
+                onTap: () => goToTab(2),
               ),
               ListTile(
                 leading: const Icon(Icons.handyman_outlined),
                 title: const Text('Go to Contractors'),
                 subtitle: const Text('Assign, view history'),
-                onTap: () => DefaultTabController.of(context)?.animateTo(3),
+                onTap: () => goToTab(3),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ayrnow/features/landlord/unit/unit_tabs_screen.dart';
 import 'll_unit_detail_screen.dart';
 import 'package:ayrnow/ui/shared/switch_role_menu.dart';
 
@@ -46,7 +47,7 @@ class LlPropertyDetailScreen extends StatelessWidget {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) =>
-                            LlUnitDetailScreen(property: property, unit: u)),
+                            UnitTabsScreen(propertyId: property.id, unitId: u.id)),
                   ),
                 ),
               )),

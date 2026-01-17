@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ayrnow/features/landlord/landlord_shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/core/models/user_role.dart';
 import 'package:ayrnow/state/role_provider.dart';
@@ -19,6 +20,10 @@ class HomeShell extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    if (role == UserRole.landlord) {
+      return const LandlordShell();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('AYRNOW • ${role.short}'),
@@ -36,7 +41,7 @@ class HomeShell extends ConsumerWidget {
         ],
       ),
       body: switch (role) {
-        UserRole.landlord => const LandlordHome(),
+        UserRole.landlord => const SizedBox.shrink(),
         UserRole.tenant => const TenantHome(),
         UserRole.contractor => const ContractorHome(),
         UserRole.guard => const GuardHome(),
