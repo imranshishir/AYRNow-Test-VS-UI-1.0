@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_demo_store.dart';
+import 'package:ayrnow/features/landlord/unit/mock_unit_data.dart';
+import 'package:ayrnow/features/landlord/unit/unit_tabs_screen.dart';
 
 class LandlordMaintenanceScreen extends StatefulWidget {
   final LandlordDemoStore store;
@@ -91,11 +93,20 @@ class _LandlordMaintenanceScreenState extends State<LandlordMaintenanceScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context)
-            .push(MaterialPageRoute(
-                builder: (_) =>
-                    _TicketDetailScreen(store: widget.store, ticket: t)))
-            .then((_) => setState(() {})),
+        onTap: () {
+          final b = MockUnitData.fromDisplay(
+            propertyName: t.propertyName,
+            unitLabel: t.unitLabel,
+            tenantName: 'Tenant (demo)',
+          );
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => UnitTabsScreen(
+              propertyId: b.propertyId,
+              unitId: b.unitId,
+              initialTab: 2, // Maintenance
+            ),
+          ));
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -331,7 +342,21 @@ class _TicketDetailScreen extends StatelessWidget {
               title: Text(c.name),
               subtitle: Text(
                   '${c.trade} • ${c.phone} • ⭐ ${c.rating.toStringAsFixed(1)}'),
-              onTap: () => Navigator.of(context).pop(c.name),
+              onTap: () {
+  final b = MockUnitData.fromDisplay(
+    propertyName: t.propertyName,
+    unitLabel: t.unitLabel,
+    tenantName: 'Tenant (demo)',
+  );
+  Navigator.of(context)
+      .push(MaterialPageRoute(
+        builder: (_) => UnitTabsScreen(
+          propertyId: b.propertyId,
+          unitId: b.unitId,
+          initialTab: 2, // Maintenance
+        ),
+      ));
+},
             ),
           ),
         ],

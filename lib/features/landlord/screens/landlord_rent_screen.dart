@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_demo_store.dart';
+import 'package:ayrnow/features/landlord/unit/mock_unit_data.dart';
+import 'package:ayrnow/features/landlord/unit/unit_tabs_screen.dart';
 
 class LandlordRentScreen extends StatefulWidget {
   final LandlordDemoStore store;
@@ -80,8 +82,8 @@ class _LandlordRentScreenState extends State<LandlordRentScreen> {
                   ]),
             ),
           ],
-        ),
       ),
+    ),
     );
   }
 
@@ -118,66 +120,102 @@ class _LandlordRentScreenState extends State<LandlordRentScreen> {
 
   Widget _rentCard(BuildContext context, RentLineItem r) {
     final isPaid = r.status == 'Paid';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          final b = MockUnitData.fromDisplay(
+            propertyName: r.propertyName,
+            unitLabel: r.unitLabel,
+            tenantName: r.tenantName,
+          );
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => UnitTabsScreen(
+                propertyId: b.propertyId,
+                unitId: b.unitId,
+                initialTab: 1, // Rent
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                  child: Text('${r.unitLabel} • ${r.propertyName}',
-                      style: Theme.of(context).textTheme.titleSmall)),
-              _statusChip(context, r.status),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${r.unitLabel} • ${r.propertyName}',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  _statusChip(context, r.status),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(r.tenantName),
+              const SizedBox(height: 6),
+              Text(
+                '${r.monthLabel} • \$${r.amount.toStringAsFixed(0)}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isPaid
+                          ? null
+                          : () {
+                              widget.store.sendReminder(r.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Reminder sent (demo).'),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.notifications_none),
+                      label: const Text('Reminder'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: isPaid
+                          ? null
+                          : () {
+                              widget.store.markRentPaid(r.id);
+                              setState(() {});
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Marked Paid (demo).'),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Mark Paid'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Receipt view + payments integration comes next.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(r.tenantName),
-          const SizedBox(height: 6),
-          Text('${r.monthLabel} • \$${r.amount.toStringAsFixed(0)}',
-              style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: isPaid
-                      ? null
-                      : () {
-                          widget.store.sendReminder(r.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Reminder sent (demo).')));
-                        },
-                  icon: const Icon(Icons.notifications_none),
-                  label: const Text('Reminder'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: isPaid
-                      ? null
-                      : () {
-                          widget.store.markRentPaid(r.id);
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Marked Paid (demo).')));
-                        },
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Mark Paid'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text('Receipt view + payments integration comes next.',
-              style: Theme.of(context).textTheme.bodySmall),
-        ]),
+        ),
       ),
     );
   }
+
 
   Widget _statusChip(BuildContext context, String s) {
     final cs = Theme.of(context).colorScheme;

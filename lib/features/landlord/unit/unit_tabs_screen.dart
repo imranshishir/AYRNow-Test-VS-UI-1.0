@@ -3,15 +3,19 @@ import 'mock_unit_data.dart';
 import 'tabs/rent_board_tab.dart';
 import 'tabs/maintenance_inbox_tab.dart';
 import 'tabs/contractors_tab.dart';
+import 'tabs/documents_tab.dart';
+import 'tabs/activity_tab.dart';
 
 class UnitTabsScreen extends StatefulWidget {
   final String propertyId;
   final String unitId;
+  final int initialTab;
 
   const UnitTabsScreen({
     super.key,
     required this.propertyId,
     required this.unitId,
+    this.initialTab = 0,
   });
 
   @override
@@ -24,8 +28,8 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 4, vsync: this);
-  }
+    _tab = TabController(length: 6, vsync: this, initialIndex: widget.initialTab.clamp(0, 5));
+}
 
   @override
   void dispose() {
@@ -47,6 +51,8 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
             Tab(text: 'Rent'),
             Tab(text: 'Maintenance'),
             Tab(text: 'Contractors'),
+            Tab(text: 'Documents'),
+            Tab(text: 'Activity'),
           ],
         ),
       ),
@@ -57,6 +63,8 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
           RentBoardTab(bundle: bundle),
           MaintenanceInboxTab(bundle: bundle),
           ContractorsTab(bundle: bundle),
+          DocumentsTab(bundle: bundle),
+          ActivityTab(bundle: bundle),
         ],
       ),
     );

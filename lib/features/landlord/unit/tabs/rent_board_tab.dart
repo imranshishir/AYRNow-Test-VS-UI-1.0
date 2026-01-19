@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/landlord/unit/mock_unit_data.dart';
 
+int _moneyToInt(String s) {
+  final cleaned = s.replaceAll(RegExp(r'[^0-9]'), '');
+  return int.tryParse(cleaned) ?? 0;
+}
+
 class RentBoardTab extends StatefulWidget {
   final UnitBundle bundle;
 
@@ -15,13 +20,17 @@ class RentBoardTab extends StatefulWidget {
 
 class _RentBoardTabState extends State<RentBoardTab> {
   // Mock unit + tenant (replace with store later)
-  late final String tenantName = 'Alex Tenant';
-  late final String unitLabel = widget.bundle.unitId;
-  late final int monthlyRent = 1850;
+  late final String tenantName = widget.bundle.tenantName;
+  late final String unitLabel = widget.bundle.unitName; // shows A-101 etc
+  late final int monthlyRent = _moneyToInt(widget.bundle.monthlyRent);
   late final int dueDay = 1;
 
   // Mock state
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  late final List<RentLedgerRow> _ledger = widget.bundle.rentLedger
+      .map((r) => r)
+      .toList(growable: true);
+
   final List<_Payment> _payments = [
     _Payment(date: DateTime.now().subtract(const Duration(days: 12)), amount: 1850, method: 'ACH', note: 'On-time'),
     _Payment(date: DateTime.now().subtract(const Duration(days: 45)), amount: 1850, method: 'Card', note: 'Auto-pay'),
@@ -40,10 +49,34 @@ class _RentBoardTabState extends State<RentBoardTab> {
 
   int get _balanceDue => _isPaidForMonth ? 0 : monthlyRent;
 
+  int _ledgerIndexForMonthLabel(String monthLabel) {
+    for (var i = 0; i < _ledger.length; i++) {
+      if (_ledger[i].monthLabel == monthLabel) return i;
+    }
+    return -1;
+  }
+
+  RentLedgerRow _rowForMonthLabel(String monthLabel) {
+    final idx = _ledgerIndexForMonthLabel(monthLabel);
+    if (idx >= 0) return _ledger[idx];
+
+    // Fallback if this month isn't present in mock ledger
+    return RentLedgerRow(
+      monthLabel: monthLabel,
+      amount: '\$$monthlyRent',
+      dueDate: 'Day $dueDay',
+      status: RentStatus.due,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+
+    final row = _rowForMonthLabel(_monthLabel);
+    final isPaid = row.status == RentStatus.paid;
+    final balanceDue = isPaid ? 0 : _moneyToInt(row.amount);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -90,21 +123,21 @@ class _RentBoardTabState extends State<RentBoardTab> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _statusPill(_isPaidForMonth ? 'PAID' : 'DUE', _isPaidForMonth),
+              _statusPill(row.status.label.toUpperCase(), isPaid),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isPaidForMonth ? 'Rent received for $_monthLabel' : 'Rent due for $_monthLabel',
+                      isPaid ? 'Rent received for ${row.monthLabel}' : 'Rent due for ${row.monthLabel}',
                       style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      _isPaidForMonth
-                          ? 'Balance: \$0 • Due day: $dueDay'
-                          : 'Balance: \$$_balanceDue • Due day: $dueDay',
+                      isPaid
+                          ? 'Balance: \$0 • Due: ${row.dueDate}'
+                          : 'Balance: \$$balanceDue • Due: ${row.dueDate}',
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 10),
@@ -135,6 +168,52 @@ class _RentBoardTabState extends State<RentBoardTab> {
             ],
           ),
         ),
+
+        const SizedBox(height: 16),
+
+        // Rent ledger (from UnitBundle)
+        Row(
+          children: [
+            Text('Rent ledger', style: theme.textTheme.titleMedium),
+            const Spacer(),
+            Text('${_ledger.length} months', style: theme.textTheme.labelMedium),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        ..._ledger.map((r) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: theme.colorScheme.surfaceContainerLowest,
+              border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  r.status == RentStatus.paid
+                      ? Icons.check_circle_outline_rounded
+                      : (r.status == RentStatus.late
+                          ? Icons.error_outline_rounded
+                          : Icons.schedule_rounded),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${r.monthLabel} • ${r.amount}', style: theme.textTheme.titleSmall),
+                      const SizedBox(height: 3),
+                      Text('Due: ${r.dueDate} • Status: ${r.status.label}', style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
 
         const SizedBox(height: 16),
 
@@ -336,6 +415,11 @@ class _RentBoardTabState extends State<RentBoardTab> {
           method: method,
           note: noteCtrl.text.trim(),
         ));
+
+        final idx = _ledgerIndexForMonthLabel(_monthLabel);
+        if (idx >= 0) {
+          _ledger[idx] = _ledger[idx].copyWith(status: RentStatus.paid);
+        }
       });
 
       if (mounted) {

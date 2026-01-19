@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_demo_store.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_rent_screen.dart';
-import 'package:ayrnow/features/landlord/screens/landlord_maintenance_screen.dart';
-import 'package:ayrnow/features/landlord/screens/landlord_contractors_screen.dart';
 
 /// ------------------------------
 /// Demo Models + Data (Landlord)

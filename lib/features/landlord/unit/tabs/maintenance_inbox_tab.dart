@@ -15,10 +15,10 @@ class _MaintenanceInboxTabState extends State<MaintenanceInboxTab> {
   @override
   void initState() {
     super.initState();
-    _tickets = List.of(widget.bundle.maintenanceTickets);
+    _tickets = UnitSessionStore.ticketsFor(widget.bundle);
   }
 
-  void _assign(int i) async {
+  Future<void> _assign(int i) async {
     final selected = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -28,15 +28,13 @@ class _MaintenanceInboxTabState extends State<MaintenanceInboxTab> {
     if (selected == null) return;
 
     setState(() {
-      _tickets[i] = _tickets[i].copyWith(
-        status: TicketStatus.assigned,
-        assignedTo: selected,
-      );
+      UnitSessionStore.assignTicket(widget.bundle, _tickets[i].id, selected);
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Assigned to $selected')),
-    );
+if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Assigned to $selected')),
+      );
+    }
   }
 
   @override
@@ -51,15 +49,18 @@ class _MaintenanceInboxTabState extends State<MaintenanceInboxTab> {
             FilledButton.tonalIcon(
               onPressed: () {
                 setState(() {
-                  _tickets.insert(0, MaintenanceTicketRow(
-                    id: 'T-${DateTime.now().millisecondsSinceEpoch}',
-                    title: 'New ticket (demo)',
-                    category: 'General',
-                    priority: 'Medium',
-                    status: TicketStatus.newTicket,
-                    createdAt: 'Today',
-                    assignedTo: null,
-                  ));
+                  _tickets.insert(
+                    0,
+                    MaintenanceTicketRow(
+                      id: 'T-${DateTime.now().millisecondsSinceEpoch}',
+                      title: 'New ticket (demo)',
+                      category: 'General',
+                      priority: 'Medium',
+                      status: TicketStatus.newTicket,
+                      createdAt: 'Today',
+                      assignedTo: null,
+                    ),
+                  );
                 });
               },
               icon: const Icon(Icons.add),
@@ -72,10 +73,25 @@ class _MaintenanceInboxTabState extends State<MaintenanceInboxTab> {
           final x = _tickets[i];
           return Card(
             child: ListTile(
+              onTap: () async {
+                final updated = await Navigator.of(context).push<MaintenanceTicketRow>(
+                  MaterialPageRoute(
+                    builder: (_) => _TicketDetailScreen(
+                      ticket: x,
+                      contractors: widget.bundle.contractors,
+                    ),
+                  ),
+                );
+                if (updated != null) {
+                  setState(() => _tickets[i] = updated);
+                }
+              },
               leading: Icon(x.status.icon),
               title: Text(x.title),
-              subtitle: Text('${x.category} • ${x.priority} • ${x.status.label}'
-                  '${x.assignedTo != null ? ' • Assigned: ${x.assignedTo}' : ''}'),
+              subtitle: Text(
+                '${x.category} • ${x.priority} • ${x.status.label}'
+                '${x.assignedTo != null ? ' • Assigned: ${x.assignedTo}' : ''}',
+              ),
               trailing: x.status == TicketStatus.completed
                   ? const SizedBox.shrink()
                   : FilledButton.tonal(
@@ -86,6 +102,159 @@ class _MaintenanceInboxTabState extends State<MaintenanceInboxTab> {
           );
         }),
       ],
+    );
+  }
+}
+
+class _TicketDetailScreen extends StatefulWidget {
+  final MaintenanceTicketRow ticket;
+  final List<ContractorRow> contractors;
+
+  const _TicketDetailScreen({
+    required this.ticket,
+    required this.contractors,
+  });
+
+  @override
+  State<_TicketDetailScreen> createState() => _TicketDetailScreenState();
+}
+
+class _TicketDetailScreenState extends State<_TicketDetailScreen> {
+  late MaintenanceTicketRow _t;
+
+  @override
+  void initState() {
+    super.initState();
+    _t = widget.ticket;
+  }
+
+  Future<void> _pickAssignee() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => _AssignSheet(contractors: widget.contractors),
+    );
+    if (selected == null) return;
+
+    setState(() {
+      _t = _t.copyWith(status: TicketStatus.assigned, assignedTo: selected);
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Assigned to $selected')),
+      );
+    }
+  }
+
+  void _advanceStatus() {
+    final next = switch (_t.status) {
+      TicketStatus.newTicket => TicketStatus.assigned,
+      TicketStatus.assigned => TicketStatus.inProgress,
+      TicketStatus.inProgress => TicketStatus.completed,
+      TicketStatus.completed => TicketStatus.completed,
+    };
+
+    setState(() {
+      _t = _t.copyWith(status: next);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    final canAssign = _t.status != TicketStatus.completed;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Ticket • ${_t.id}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, _t),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_t.title, style: t.textTheme.titleLarge),
+                  const SizedBox(height: 6),
+                  Text('${_t.category} • Priority ${_t.priority}'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(_t.status.icon, size: 18),
+                      const SizedBox(width: 8),
+                      Text('Status: ${_t.status.label}', style: t.textTheme.titleSmall),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text('Created: ${_t.createdAt}'),
+                  const SizedBox(height: 6),
+                  Text(_t.assignedTo == null ? 'Assigned: (none)' : 'Assigned: ${_t.assignedTo}'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Actions', style: t.textTheme.titleMedium),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: canAssign ? _pickAssignee : null,
+                        icon: const Icon(Icons.assignment_ind_outlined),
+                        label: Text(_t.assignedTo == null ? 'Assign contractor' : 'Reassign'),
+                      ),
+                      FilledButton.icon(
+                        onPressed: _t.status == TicketStatus.completed ? null : _advanceStatus,
+                        icon: const Icon(Icons.sync_alt_rounded),
+                        label: Text(_t.status == TicketStatus.completed ? 'Completed' : 'Advance status'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Demo: add internal note')),
+                          );
+                        },
+                        icon: const Icon(Icons.note_add_outlined),
+                        label: const Text('Add note'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.history_rounded),
+              title: const Text('Activity (demo)'),
+              subtitle: Text(
+                '• ${_t.createdAt}: Ticket created\n'
+                '• Today: Status is ${_t.status.label}'
+                '${_t.assignedTo != null ? '\n• Assigned to ${_t.assignedTo}' : ''}',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

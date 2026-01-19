@@ -148,7 +148,116 @@ class AssignmentHistoryRow {
   });
 }
 
+
+class UnitSessionStore {
+  static final Map<String, List<MaintenanceTicketRow>> _tickets = {};
+  static final Map<String, List<AssignmentHistoryRow>> _history = {};
+  static final Map<String, List<ContractorRow>> _contractors = {};
+
+  static String _key(UnitBundle b) => '${b.propertyId}::${b.unitId}';
+
+  static void _init(UnitBundle b) {
+    final k = _key(b);
+    _tickets.putIfAbsent(k, () => List.of(b.maintenanceTickets));
+    _history.putIfAbsent(k, () => List.of(b.assignmentHistory));
+    _contractors.putIfAbsent(k, () => List.of(b.contractors));
+  }
+
+  static List<MaintenanceTicketRow> ticketsFor(UnitBundle b) {
+    _init(b);
+    return _tickets[_key(b)]!;
+  }
+
+  static List<AssignmentHistoryRow> historyFor(UnitBundle b) {
+    _init(b);
+    return _history[_key(b)]!;
+  }
+
+  static List<ContractorRow> contractorsFor(UnitBundle b) {
+    _init(b);
+    return _contractors[_key(b)]!;
+  }
+
+  static void addTicket(UnitBundle b, MaintenanceTicketRow t) {
+    final list = ticketsFor(b);
+    list.insert(0, t);
+  }
+
+  static void assignTicket(UnitBundle b, String ticketId, String contractorName) {
+    final list = ticketsFor(b);
+    final i = list.indexWhere((x) => x.id == ticketId);
+    if (i < 0) return;
+
+    final updated = list[i].copyWith(
+      status: TicketStatus.assigned,
+      assignedTo: contractorName,
+    );
+    list[i] = updated;
+
+    final hist = historyFor(b);
+    hist.insert(
+      0,
+      AssignmentHistoryRow(
+        title: updated.title,
+        contractor: contractorName,
+        date: 'Today',
+        status: 'Assigned',
+      ),
+    );
+  }
+
+  static void markCompleted(UnitBundle b, String ticketId) {
+    final list = ticketsFor(b);
+    final i = list.indexWhere((x) => x.id == ticketId);
+    if (i < 0) return;
+
+    final updated = list[i].copyWith(status: TicketStatus.completed);
+    list[i] = updated;
+
+    final hist = historyFor(b);
+    hist.insert(
+      0,
+      AssignmentHistoryRow(
+        title: updated.title,
+        contractor: updated.assignedTo ?? '—',
+        date: 'Today',
+        status: 'Completed',
+      ),
+    );
+  }
+}
+
 class MockUnitData {
+  // Best-effort mapping for deep links from landlord lists (Rent/Maintenance).
+  // We don't have real property/unit IDs yet, so we generate stable IDs from display strings.
+  static UnitBundle fromDisplay({
+    required String propertyName,
+    required String unitLabel,
+    required String tenantName,
+  }) {
+    final pid = propertyName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    final uid = unitLabel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    final b = bundle(propertyId: pid, unitId: uid);
+
+    return UnitBundle(
+      propertyId: b.propertyId,
+      unitId: b.unitId,
+      propertyName: propertyName,
+      unitName: unitLabel,
+      unitType: b.unitType,
+      occupancyStatus: b.occupancyStatus,
+      tenantName: tenantName,
+      tenantEmail: b.tenantEmail,
+      tenantPhone: b.tenantPhone,
+      monthlyRent: b.monthlyRent,
+      currentBalance: b.currentBalance,
+      rentLedger: b.rentLedger,
+      maintenanceTickets: b.maintenanceTickets,
+      contractors: b.contractors,
+      assignmentHistory: b.assignmentHistory,
+    );
+  }
+
   static UnitBundle bundle({required String propertyId, required String unitId}) {
     return UnitBundle(
       propertyId: propertyId,

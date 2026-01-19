@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_demo_store.dart';
+import 'package:ayrnow/features/landlord/screens/ll_dashboard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/core/models/user_role.dart';
 
 // Tabs (reuse your existing landlord screens)
-import 'package:ayrnow/features/landlord/landlord_home.dart';
 import 'package:ayrnow/features/landlord/screens/ll_properties_list_screen.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_rent_screen.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_maintenance_screen.dart';
@@ -56,7 +56,7 @@ class _LandlordShellState extends ConsumerState<LandlordShell> {
       body: IndexedStack(
         index: _index,
         children: [
-          LandlordHome(),
+          LlDashboardScreen(store: store, goToTab: (i) => setState(() => _index = i)),
           LlPropertiesListScreen(),
           LandlordRentScreen(store: store),
           LandlordMaintenanceScreen(store: store),
