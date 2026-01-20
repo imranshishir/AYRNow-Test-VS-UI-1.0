@@ -27,7 +27,8 @@ class TenantPayHomeScreen extends StatelessWidget {
       children: [
         Text('Pay', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 6),
-        Text('Quick actions for tenant payments.', style: Theme.of(context).textTheme.bodyMedium),
+        Text('Quick actions for tenant payments.',
+            style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 14),
         Card(
           child: Padding(
@@ -40,7 +41,8 @@ class TenantPayHomeScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('${_quickUnit.label} • ${money(_quickUnit.rentCents)}',
+                      child: Text(
+                          '${_quickUnit.label} • ${money(_quickUnit.rentCents)}',
                           style: Theme.of(context).textTheme.titleMedium),
                     ),
                     Chip(label: Text(_quickUnit.isOverdue ? 'Overdue' : 'Due')),
@@ -51,7 +53,8 @@ class TenantPayHomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => TenantPayRentScreen(property: _quickProperty, unit: _quickUnit),
+                        builder: (_) => TenantPayRentScreen(
+                            property: _quickProperty, unit: _quickUnit),
                       ),
                     );
                   },

@@ -3,126 +3,162 @@ import 'package:ayrnow/features/landlord/screens/landlord_demo_store.dart';
 
 class LlDashboardScreen extends StatelessWidget {
   final LandlordDemoStore store;
-  final void Function(int index) goToTab;
-
-  const LlDashboardScreen({
-    super.key,
-    required this.store,
-    required this.goToTab,
-  });
+  final ValueChanged<int>? goToTab;
+  const LlDashboardScreen({super.key, required this.store, this.goToTab});
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
 
-    // Demo metrics (keep mock/simple)
-    final due = store.rent.where((r) => r.status == 'Due' || r.status == 'Late').length;
-    final openTickets = store.tickets.where((t) => t.status != 'Completed').length;
-    final activeWork = store.workOrders.where((w) => w.status != 'Approved').length;
+    // Derive basic metrics from existing sample store (no store.properties dependency)
+    final propertyNames = <String>{};
+    final unitKeys = <String>{};
+
+    for (final r in store.rent) {
+      propertyNames.add(r.propertyName);
+      unitKeys.add('${r.propertyName}::${r.unitLabel}');
+    }
+    for (final x in store.tickets) {
+      propertyNames.add(x.propertyName);
+      unitKeys.add('${x.propertyName}::${x.unitLabel}');
+    }
+
+    final properties = propertyNames.length;
+    final units = unitKeys.length;
+
+    final outstanding = store.rent
+        .where((r) => r.status != 'Paid')
+        .fold<double>(0, (sum, r) => sum + r.amount);
+
+    final openTickets = store.tickets.where((x) => x.status != 'Completed').length;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        Text('Dashboard', style: t.textTheme.headlineSmall),
-        const SizedBox(height: 8),
-        Text('Quick snapshot for your portfolio', style: t.textTheme.bodyMedium),
+        Text('Landlord Dashboard', style: t.textTheme.titleLarge),
+        const SizedBox(height: 6),
+        Text('Quick snapshot across your portfolio', style: t.textTheme.bodyMedium),
         const SizedBox(height: 14),
 
+        // KPI Row
         Row(
           children: [
-            Expanded(child: _Metric(label: 'Due/Late', value: '$due')),
+            Expanded(child: _kpi(context, label: 'Properties', value: '$properties')),
             const SizedBox(width: 12),
-            Expanded(child: _Metric(label: 'Open tickets', value: '$openTickets')),
+            Expanded(child: _kpi(context, label: 'Units', value: '$units')),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _kpi(context, label: 'Outstanding', value: '\$${outstanding.toStringAsFixed(0)}')),
+            const SizedBox(width: 12),
+            Expanded(child: _kpi(context, label: 'Open tickets', value: '$openTickets')),
           ],
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 18),
+        Text('Shortcuts', style: t.textTheme.titleMedium),
+        const SizedBox(height: 10),
 
-        Row(
-          children: [
-            Expanded(child: _Metric(label: 'Active work', value: '$activeWork')),
-            const SizedBox(width: 12),
-            Expanded(child: _Metric(label: 'Rent items', value: '${store.rent.length}')),
-          ],
+        _actionCard(
+          context,
+          icon: Icons.apartment_rounded,
+          title: 'Properties',
+          subtitle: 'Go to property list → units → unit tabs',
+          onTap: () => goToTab?.call(1),
+        ),
+        _actionCard(
+          context,
+          icon: Icons.payments_rounded,
+          title: 'Rent',
+          subtitle: 'Search & filter rent ledger; deep-link into unit rent tab',
+          onTap: () => goToTab?.call(2),
+        ),
+        _actionCard(
+          context,
+          icon: Icons.build_rounded,
+          title: 'Maintenance',
+          subtitle: 'Tickets inbox; create + assign; deep-link into unit maintenance tab',
+          onTap: () => goToTab?.call(3),
+        ),
+        _actionCard(
+          context,
+          icon: Icons.handyman_rounded,
+          title: 'Contractors',
+          subtitle: 'Preferred vendors + assignment history',
+          onTap: () => goToTab?.call(4),
         ),
 
-        const SizedBox(height: 12),
-
+        const SizedBox(height: 18),
         Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.apartment_rounded),
-                title: const Text('Go to Properties'),
-                subtitle: const Text('Manage units and tenants'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => goToTab(1),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.payments_rounded),
-                title: const Text('Go to Rent'),
-                subtitle: const Text('Ledger, dues, receipts'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => goToTab(2),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.build_rounded),
-                title: const Text('Go to Maintenance'),
-                subtitle: const Text('Tickets and assignments'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => goToTab(3),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.handyman_rounded),
-                title: const Text('Go to Contractors'),
-                subtitle: const Text('Assign and track work'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => goToTab(4),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.bolt_outlined),
-            title: const Text('Next: real KPI dashboard'),
-            subtitle: const Text('Paid vs Due, open tickets, occupancy, revenue trend'),
-            onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Next steps (real app readiness)', style: t.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Text('• Connect repositories (mock → API later)'),
+                Text('• Add auth + real tenant/property IDs'),
+                Text('• Stripe payments + webhooks (later, backend chat)'),
+                Text('• App Store / Play Store assets + policy pages'),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
-}
 
-class _Metric extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _Metric({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+  Widget _kpi(BuildContext context, {required String label, required String value}) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: cs.primaryContainer,
+              ),
+              child: Icon(Icons.auto_graph_rounded, color: cs.onPrimaryContainer),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.labelLarge),
+                  const SizedBox(height: 3),
+                  Text(value, style: Theme.of(context).textTheme.titleLarge),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: t.textTheme.labelMedium),
-          const SizedBox(height: 6),
-          Text(value, style: t.textTheme.titleMedium),
-        ],
+    );
+  }
+
+  Widget _actionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }
