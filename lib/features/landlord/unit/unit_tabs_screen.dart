@@ -76,7 +76,7 @@ class _Overview extends StatelessWidget {
   final void Function(int) goToTab;
   const _Overview({required this.bundle, required this.goToTab});
 
-  @override
+  
   Widget build(BuildContext context) {
     final t = Theme.of(context);
     return ListView(
@@ -89,14 +89,34 @@ class _Overview extends StatelessWidget {
             children: [
               Text(bundle.unitName, style: t.textTheme.titleLarge),
               const SizedBox(height: 6),
-              Text('Type: ${bundle.unitType}'),
-              Text('Status: ${bundle.occupancyStatus}'),
+              Text('Type: '),
+              Text('Status: '),
               const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(child: _Metric(label: 'Rent', value: bundle.monthlyRent)),
                   const SizedBox(width: 12),
                   Expanded(child: _Metric(label: 'Balance', value: bundle.currentBalance)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => goToTab(1),
+                      icon: const Icon(Icons.payments_outlined),
+                      label: const Text('View rent'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => goToTab(2),
+                      icon: const Icon(Icons.build_outlined),
+                      label: const Text('View tickets'),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -114,13 +134,9 @@ class _Overview extends StatelessWidget {
               Text(bundle.tenantPhone),
               const SizedBox(height: 10),
               FilledButton.tonalIcon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Demo: message tenant')),
-                  );
-                },
-                icon: const Icon(Icons.message_outlined),
-                label: const Text('Message tenant'),
+                onPressed: () => _openContactTenant(context),
+                icon: const Icon(Icons.chat_bubble_outline),
+                label: const Text('Contact tenant'),
               ),
             ],
           ),
@@ -131,27 +147,102 @@ class _Overview extends StatelessWidget {
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.attach_money),
-                title: const Text('Go to Rent Board'),
-                subtitle: const Text('Ledger, collections, receipts'),
-                onTap: () => goToTab(1),
+                leading: const Icon(Icons.add_task_outlined),
+                title: const Text('Create maintenance ticket'),
+                subtitle: const Text('Log an issue for this unit'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Ticket creation will be added soon.')),
+                  );
+                  goToTab(2);
+                },
               ),
+              const Divider(height: 1),
               ListTile(
-                leading: const Icon(Icons.build_outlined),
-                title: const Text('Go to Maintenance'),
-                subtitle: const Text('Tickets, assignments, status updates'),
-                onTap: () => goToTab(2),
-              ),
-              ListTile(
-                leading: const Icon(Icons.handyman_outlined),
-                title: const Text('Go to Contractors'),
-                subtitle: const Text('Assign, view history'),
-                onTap: () => goToTab(3),
+                leading: const Icon(Icons.upload_file_outlined),
+                title: const Text('Upload document'),
+                subtitle: const Text('Add lease, receipts, or notices'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Upload will be added soon.')),
+                  );
+                  goToTab(4);
+                },
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _openContactTenant(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (_) {
+        final t = Theme.of(context);
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Contact tenant', style: t.textTheme.titleMedium),
+              const SizedBox(height: 6),
+              Text(bundle.tenantName, style: t.textTheme.bodyLarge),
+              const SizedBox(height: 10),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.call_outlined),
+                  title: const Text('Call'),
+                  subtitle: Text(bundle.tenantPhone),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Calling will be enabled soon.')),
+                    );
+                  },
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.email_outlined),
+                  title: const Text('Email'),
+                  subtitle: Text(bundle.tenantEmail),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Email will be enabled soon.')),
+                    );
+                  },
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.message_outlined),
+                  title: const Text('Message'),
+                  subtitle: const Text('In-app messaging will be enabled soon.'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Messaging will be enabled soon.')),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 6),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+                label: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
