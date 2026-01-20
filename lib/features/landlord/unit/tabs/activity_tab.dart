@@ -238,34 +238,100 @@ class _EmptyState extends StatelessWidget {
 (String, String) _bundleLabels(UnitBundle bundle) {
   final b = bundle as dynamic;
 
-  // Property name candidates
-  final propertyName =
-      _tryGetString(() => b.property.name) ??
-      _tryGetString(() => b.propertyName) ??
-      _tryGetString(() => b.propertyLabel) ??
-      _tryGetString(() => b.propertyTitle) ??
-      'Property';
+  final propertyName = _safeLabel(
+    bundle: b,
+    candidates: [
+      () => b.propertyName,
+      () => b.propertyLabel,
+      () => b.propertyTitle,
+      () => b.buildingName,
+      () => b.communityName,
+      () => b.siteName,
+      () => b.complexName,
+      () => b.addressLine1,
+      () => b.address?.line1,
+      () => b.locationLabel,
+    ],
+    mapKeys: [
+      'propertyName',
+      'propertyLabel',
+      'propertyTitle',
+      'buildingName',
+      'communityName',
+      'siteName',
+      'complexName',
+      'addressLine1',
+      'locationLabel',
+    ],
+    fallback: 'Property',
+  );
 
-  // Unit label candidates
-  final unitLabel =
-      _tryGetString(() => b.unit.label) ??
-      _tryGetString(() => b.unitLabel) ??
-      _tryGetString(() => b.unitName) ??
-      _tryGetString(() => b.unitTitle) ??
-      _tryGetString(() => b.unitNumber) ??
-      'Unit';
+  final unitLabel = _safeLabel(
+    bundle: b,
+    candidates: [
+      () => b.unitLabel,
+      () => b.unitName,
+      () => b.unitTitle,
+      () => b.unitNumber,
+      () => b.suite,
+      () => b.doorNumber,
+      () => b.apartment,
+      () => b.spaceName,
+    ],
+    mapKeys: [
+      'unitLabel',
+      'unitName',
+      'unitTitle',
+      'unitNumber',
+      'suite',
+      'doorNumber',
+      'apartment',
+      'spaceName',
+    ],
+    fallback: 'Unit',
+  );
 
   return (propertyName, unitLabel);
 }
 
-String? _tryGetString(String Function() fn) {
+String _safeLabel({
+  required dynamic bundle,
+  required List<String Function()> candidates,
+  required List<String> mapKeys,
+  required String fallback,
+}) {
+  for (final candidate in candidates) {
+    final value = _tryGetString(candidate);
+    if (value != null) return value;
+  }
+  final mapValue = _tryGetMapString(bundle, mapKeys);
+  if (mapValue != null) return mapValue;
+  return fallback;
+}
+
+String? _tryGetString(Object? Function() fn) {
   try {
     final v = fn();
-    if (v.trim().isEmpty) return null;
-    return v;
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.isEmpty) return null;
+    return s;
   } catch (_) {
     return null;
   }
+}
+
+String? _tryGetMapString(dynamic bundle, List<String> keys) {
+  if (bundle is! Map) return null;
+  for (final key in keys) {
+    final value = _tryGetString(() {
+      if (!bundle.containsKey(key)) return '';
+      final v = bundle[key];
+      return v?.toString() ?? '';
+    });
+    if (value != null) return value;
+  }
+  return null;
 }
 
 String _formatRelative(DateTime dt) {
