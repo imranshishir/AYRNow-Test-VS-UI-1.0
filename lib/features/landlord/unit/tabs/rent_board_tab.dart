@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ayrnow/features/landlord/unit/mock_unit_data.dart';
 
 int _moneyToInt(String s) {
@@ -19,35 +20,28 @@ class RentBoardTab extends StatefulWidget {
 }
 
 class _RentBoardTabState extends State<RentBoardTab> {
-  // Mock unit + tenant (replace with store later)
   late final String tenantName = widget.bundle.tenantName;
-  late final String unitLabel = widget.bundle.unitName; // shows A-101 etc
+  late final String unitLabel = widget.bundle.unitName;
   late final int monthlyRent = _moneyToInt(widget.bundle.monthlyRent);
   late final int dueDay = 1;
 
-  // Mock state
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  late final List<RentLedgerRow> _ledger = widget.bundle.rentLedger
-      .map((r) => r)
-      .toList(growable: true);
+
+  late final List<RentLedgerRow> _ledger =
+      widget.bundle.rentLedger.map((r) => r).toList(growable: true);
 
   final List<_Payment> _payments = [
     _Payment(date: DateTime.now().subtract(const Duration(days: 12)), amount: 1850, method: 'ACH', note: 'On-time'),
     _Payment(date: DateTime.now().subtract(const Duration(days: 45)), amount: 1850, method: 'Card', note: 'Auto-pay'),
   ];
 
-  bool get _isPaidForMonth {
-    return _payments.any((p) => p.date.year == _month.year && p.date.month == _month.month);
-  }
+  bool get _isPaidForMonth =>
+      _payments.any((p) => p.date.year == _month.year && p.date.month == _month.month);
 
   String get _monthLabel {
-    const m = [
-      'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'
-    ];
+    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${m[_month.month - 1]} ${_month.year}';
   }
-
-  int get _balanceDue => _isPaidForMonth ? 0 : monthlyRent;
 
   int _ledgerIndexForMonthLabel(String monthLabel) {
     for (var i = 0; i < _ledger.length; i++) {
@@ -60,7 +54,6 @@ class _RentBoardTabState extends State<RentBoardTab> {
     final idx = _ledgerIndexForMonthLabel(monthLabel);
     if (idx >= 0) return _ledger[idx];
 
-    // Fallback if this month isn't present in mock ledger
     return RentLedgerRow(
       monthLabel: monthLabel,
       amount: '\$$monthlyRent',
@@ -73,6 +66,7 @@ class _RentBoardTabState extends State<RentBoardTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final money = NumberFormat.simpleCurrency(locale: 'en_US');
 
     final row = _rowForMonthLabel(_monthLabel);
     final isPaid = row.status == RentStatus.paid;
@@ -84,7 +78,7 @@ class _RentBoardTabState extends State<RentBoardTab> {
         _header(theme),
         const SizedBox(height: 12),
 
-        // Month selector + status
+        // Month selector
         Row(
           children: [
             Expanded(
@@ -94,10 +88,7 @@ class _RentBoardTabState extends State<RentBoardTab> {
                     Icon(Icons.calendar_month_rounded, color: cs.primary),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        _monthLabel,
-                        style: theme.textTheme.titleMedium,
-                      ),
+                      child: Text(_monthLabel, style: theme.textTheme.titleMedium),
                     ),
                     IconButton(
                       tooltip: 'Previous month',
@@ -136,8 +127,8 @@ class _RentBoardTabState extends State<RentBoardTab> {
                     const SizedBox(height: 6),
                     Text(
                       isPaid
-                          ? 'Balance: \$0 • Due: ${row.dueDate}'
-                          : 'Balance: \$$balanceDue • Due: ${row.dueDate}',
+                          ? 'Balance: ${money.format(0)} • Due: ${row.dueDate}'
+                          : 'Balance: ${money.format(balanceDue)} • Due: ${row.dueDate}',
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 10),
@@ -146,7 +137,7 @@ class _RentBoardTabState extends State<RentBoardTab> {
                       runSpacing: 10,
                       children: [
                         FilledButton.icon(
-                          onPressed: () => _recordPayment(context),
+                          onPressed: () => _recordPayment(context, money),
                           icon: const Icon(Icons.add_circle_outline),
                           label: const Text('Record payment'),
                         ),
@@ -171,7 +162,7 @@ class _RentBoardTabState extends State<RentBoardTab> {
 
         const SizedBox(height: 16),
 
-        // Rent ledger (from UnitBundle)
+        // Rent ledger
         Row(
           children: [
             Text('Rent ledger', style: theme.textTheme.titleMedium),
@@ -181,43 +172,50 @@ class _RentBoardTabState extends State<RentBoardTab> {
         ),
         const SizedBox(height: 10),
 
-        ..._ledger.map((r) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: theme.colorScheme.surfaceContainerLowest,
-              border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  r.status == RentStatus.paid
-                      ? Icons.check_circle_outline_rounded
-                      : (r.status == RentStatus.late
-                          ? Icons.error_outline_rounded
-                          : Icons.schedule_rounded),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${r.monthLabel} • ${r.amount}', style: theme.textTheme.titleSmall),
-                      const SizedBox(height: 3),
-                      Text('Due: ${r.dueDate} • Status: ${r.status.label}', style: theme.textTheme.bodyMedium),
-                    ],
+        if (_ledger.isEmpty)
+          _emptyCard(
+            theme,
+            title: 'No ledger entries yet',
+            subtitle: 'Ledger rows will appear here when rent periods are created.',
+            actionLabel: 'Create period (soon)',
+            onTap: () => _toast(context, 'Creating rent periods will be added soon.'),
+          )
+        else
+          ..._ledger.map((r) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: theme.colorScheme.surfaceContainerLowest,
+                border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    r.status == RentStatus.paid
+                        ? Icons.check_circle_outline_rounded
+                        : (r.status == RentStatus.late ? Icons.error_outline_rounded : Icons.schedule_rounded),
                   ),
-                ),
-              ],
-            ),
-          );
-        }),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${r.monthLabel} • ${r.amount}', style: theme.textTheme.titleSmall),
+                        const SizedBox(height: 3),
+                        Text('Due: ${r.dueDate} • Status: ${r.status.label}', style: theme.textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
 
         const SizedBox(height: 16),
 
-        // Payment history (mock)
+        // Payment history
         Row(
           children: [
             Text('Payment history', style: theme.textTheme.titleMedium),
@@ -227,24 +225,34 @@ class _RentBoardTabState extends State<RentBoardTab> {
         ),
         const SizedBox(height: 10),
 
-        ..._payments
-            .sortedNewestFirst()
-            .map((p) => _historyRow(theme, p))
-            .toList(),
+        if (_payments.isEmpty)
+          _emptyCard(
+            theme,
+            title: 'No payments recorded yet',
+            subtitle: 'Record a payment to track history for this unit.',
+            actionLabel: 'Record payment',
+            onTap: () => _recordPayment(context, money),
+          )
+        else
+          ..._payments.sortedNewestFirst().map((p) => _historyRow(theme, p, money)),
 
         const SizedBox(height: 18),
 
-        // Quick “Late fees / notes” placeholder (HIFI skeleton)
         _card(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Notes', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
+              Text('Late fees & notes', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 6),
               Text(
-                'Mock logic: late fees + grace period + auto-pay rules can be added here.\n'
-                'Next: connect to LandlordDemoStore + Tenant profile + real Rent ledger model.',
+                'Late fees, notes, and automation rules will be added in an upcoming update.',
                 style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => _toast(context, 'Automation rules will be added soon.'),
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Set automation (soon)'),
               ),
             ],
           ),
@@ -253,261 +261,160 @@ class _RentBoardTabState extends State<RentBoardTab> {
     );
   }
 
-  Widget _header(ThemeData theme) {
-    return Row(
-      children: [
-        const Icon(Icons.home_work_rounded),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Unit $unitLabel', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 2),
-              Text('Tenant: $tenantName', style: theme.textTheme.bodyMedium),
-            ],
-          ),
-        ),
-      ],
-    );
+  void _toast(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  Widget _statusPill(String text, bool ok) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: ok ? cs.primaryContainer : cs.tertiaryContainer,
-      ),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: ok ? cs.onPrimaryContainer : cs.onTertiaryContainer,
-              letterSpacing: 0.6,
-            ),
-      ),
+  Widget _header(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Rent', style: theme.textTheme.titleLarge),
+        const SizedBox(height: 6),
+        Text('$tenantName • $unitLabel', style: theme.textTheme.bodyMedium),
+      ],
     );
   }
 
   Widget _card({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: child,
       ),
-      child: child,
     );
   }
 
-  Widget _historyRow(ThemeData theme, _Payment p) {
-    final date = '${p.date.month}/${p.date.day}/${p.date.year}';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: theme.colorScheme.surfaceContainerLowest,
-        border: Border.all(color: theme.dividerColor.withOpacity(0.25)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline_rounded),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('\$${p.amount} • ${p.method}', style: theme.textTheme.titleSmall),
-                const SizedBox(height: 3),
-                Text(date + (p.note.isEmpty ? '' : ' • ${p.note}'), style: theme.textTheme.bodyMedium),
-              ],
+  Widget _emptyCard(
+    ThemeData theme, {
+    required String title,
+    required String subtitle,
+    required String actionLabel,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: theme.textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Text(subtitle, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onTap,
+              icon: const Icon(Icons.add_circle_outline),
+              label: Text(actionLabel),
             ),
-          ),
-          IconButton(
-            tooltip: 'Details',
-            onPressed: () => _paymentDetails(context, p),
-            icon: const Icon(Icons.chevron_right_rounded),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _recordPayment(BuildContext context) async {
-    final amountCtrl = TextEditingController(text: monthlyRent.toString());
-    final noteCtrl = TextEditingController(text: _isPaidForMonth ? 'Extra / partial' : 'Recorded manually');
-    String method = 'ACH';
+  Widget _statusPill(String text, bool paid) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: paid ? Colors.green.withOpacity(0.12) : Colors.orange.withOpacity(0.12),
+      ),
+      child: Text(text),
+    );
+  }
 
-    final ok = await showModalBottomSheet<bool>(
+  Future<void> _recordPayment(BuildContext context, NumberFormat money) async {
+    showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
       showDragHandle: true,
-      builder: (ctx) {
-        final media = MediaQuery.of(ctx);
+      builder: (_) {
+        final t = Theme.of(context);
         return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 8,
-            bottom: media.viewInsets.bottom + 16,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Record payment', style: Theme.of(ctx).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount'),
+              Text('Record payment', style: t.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text('This will be connected to payments later. For now it updates local history.',
+                  style: t.textTheme.bodyMedium),
+              const SizedBox(height: 14),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _payments.insert(
+                      0,
+                      _Payment(date: DateTime.now(), amount: monthlyRent, method: 'Manual', note: 'Recorded'),
+                    );
+                  });
+                  _toast(context, 'Payment recorded locally: ${money.format(monthlyRent)}');
+                },
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Record now'),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: method,
-                items: const [
-                  DropdownMenuItem(value: 'ACH', child: Text('ACH')),
-                  DropdownMenuItem(value: 'Card', child: Text('Card')),
-                  DropdownMenuItem(value: 'Cash', child: Text('Cash')),
-                  DropdownMenuItem(value: 'Check', child: Text('Check')),
-                ],
-                onChanged: (v) => method = v ?? 'ACH',
-                decoration: const InputDecoration(labelText: 'Method'),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+                label: const Text('Cancel'),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: noteCtrl,
-                decoration: const InputDecoration(labelText: 'Note (optional)'),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () => Navigator.of(ctx).pop(true),
-                      child: const Text('Save'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
             ],
           ),
         );
       },
     );
-
-    if (ok == true) {
-      final amt = int.tryParse(amountCtrl.text.trim()) ?? monthlyRent;
-      setState(() {
-        _payments.add(_Payment(
-          date: DateTime(_month.year, _month.month, dueDay),
-          amount: amt,
-          method: method,
-          note: noteCtrl.text.trim(),
-        ));
-
-        final idx = _ledgerIndexForMonthLabel(_monthLabel);
-        if (idx >= 0) {
-          _ledger[idx] = _ledger[idx].copyWith(status: RentStatus.paid);
-        }
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment recorded (mock)')),
-        );
-      }
-    }
   }
 
   void _sendReminder(BuildContext context) {
-    final msg = _isPaidForMonth
-        ? 'Already paid for $_monthLabel (mock reminder not sent)'
-        : 'Reminder sent to tenant (mock)';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    _toast(context, 'Reminder sending will be enabled soon.');
   }
 
   void _openLedger(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => _LedgerScreen(
-          unitLabel: unitLabel,
-          tenantName: tenantName,
-          monthLabel: _monthLabel,
-          monthlyRent: monthlyRent,
-          payments: _payments.sortedNewestFirst(),
-        ),
-      ),
-    );
+    _toast(context, 'Ledger detail view will be added soon.');
   }
 
-  void _paymentDetails(BuildContext context, _Payment p) {
-    final date = '${p.date.month}/${p.date.day}/${p.date.year}';
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Payment details'),
-        content: Text(
-          'Amount: \$${p.amount}\n'
-          'Date: $date\n'
-          'Method: ${p.method}\n'
-          'Note: ${p.note.isEmpty ? '(none)' : p.note}',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-        ],
-      ),
-    );
-  }
-}
-
-class _LedgerScreen extends StatelessWidget {
-  final String unitLabel;
-  final String tenantName;
-  final String monthLabel;
-  final int monthlyRent;
-  final List<_Payment> payments;
-
-  const _LedgerScreen({
-    required this.unitLabel,
-    required this.tenantName,
-    required this.monthLabel,
-    required this.monthlyRent,
-    required this.payments,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Ledger • Unit $unitLabel')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Tenant: $tenantName', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 6),
-          Text('Month: $monthLabel • Rent: \$$monthlyRent', style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 16),
-          ...payments.map((p) {
-            final date = '${p.date.month}/${p.date.day}/${p.date.year}';
-            return ListTile(
-              leading: const Icon(Icons.receipt_long_rounded),
-              title: Text('\$${p.amount} • ${p.method}'),
-              subtitle: Text(date + (p.note.isEmpty ? '' : ' • ${p.note}')),
-            );
-          }),
-        ],
+  Widget _historyRow(ThemeData theme, _Payment p, NumberFormat money) {
+    final date = '${p.date.year}-${p.date.month.toString().padLeft(2, '0')}-${p.date.day.toString().padLeft(2, '0')}';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.receipt_long_outlined),
+        title: Text('${money.format(p.amount)} • ${p.method}'),
+        subtitle: Text('$date • ${p.note}'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            showDragHandle: true,
+            builder: (_) {
+              final t = Theme.of(context);
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Payment details', style: t.textTheme.titleMedium),
+                    const SizedBox(height: 10),
+                    Text('Amount: ${money.format(p.amount)}'),
+                    Text('Method: ${p.method}'),
+                    Text('Date: $date'),
+                    Text('Note: ${p.note}'),
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -519,7 +426,7 @@ class _Payment {
   final String method;
   final String note;
 
-  _Payment({
+  const _Payment({
     required this.date,
     required this.amount,
     required this.method,
@@ -527,7 +434,7 @@ class _Payment {
   });
 }
 
-extension _PaymentSort on List<_Payment> {
+extension on List<_Payment> {
   List<_Payment> sortedNewestFirst() {
     final copy = [...this];
     copy.sort((a, b) => b.date.compareTo(a.date));
