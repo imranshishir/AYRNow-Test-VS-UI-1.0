@@ -9,42 +9,7 @@ class ActivityTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context);
 
-    final labels = _bundleLabels(bundle);
-    final propertyName = labels.$1;
-    final unitLabel = labels.$2;
-
-    // Mock-but-realistic activity feed that is unit-scoped and "dynamic"
-    // without hard-coding bundle field names.
-    final events = <_ActivityEvent>[
-      _ActivityEvent(
-        title: 'Rent updated',
-        subtitle: 'Payment status updated for $propertyName • $unitLabel',
-        when: DateTime.now().subtract(const Duration(hours: 3)),
-        icon: Icons.payments_outlined,
-        category: 'Rent',
-      ),
-      _ActivityEvent(
-        title: 'Maintenance ticket created',
-        subtitle: 'New issue logged for $propertyName • $unitLabel',
-        when: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-        icon: Icons.build_outlined,
-        category: 'Maintenance',
-      ),
-      _ActivityEvent(
-        title: 'Contractor assigned',
-        subtitle: 'A vendor was assigned to a maintenance ticket',
-        when: DateTime.now().subtract(const Duration(days: 1)),
-        icon: Icons.handyman_outlined,
-        category: 'Contractors',
-      ),
-      _ActivityEvent(
-        title: 'Document added',
-        subtitle: 'A lease/receipt was added for the unit',
-        when: DateTime.now().subtract(const Duration(days: 3, hours: 4)),
-        icon: Icons.article_outlined,
-        category: 'Documents',
-      ),
-    ]..sort((a, b) => b.when.compareTo(a.when));
+    final items = _buildTimeline(bundle);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -61,24 +26,24 @@ class ActivityTab extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Timeline for $propertyName • $unitLabel',
+          'Timeline for ${bundle.propertyName} • ${bundle.unitName}',
           style: t.textTheme.bodyMedium,
         ),
         const SizedBox(height: 12),
 
-        if (events.isEmpty)
+        if (items.isEmpty)
           _EmptyState(onAddNote: () => _toast(context, 'Notes are coming soon.'))
         else
-          ...events.map((e) => _EventCard(event: e, onTap: () => _openEvent(context, e))),
+          ...items.map((e) => _EventCard(event: e, onTap: () => _openEvent(context, e))),
 
         const SizedBox(height: 12),
         Card(
           child: ListTile(
             leading: const Icon(Icons.timeline_outlined),
             title: const Text('Timeline improvements'),
-            subtitle: const Text('Next: auto-generate from Rent, Tickets, and Documents'),
+            subtitle: const Text('Next: persistent activity stream + deep-linking'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _toast(context, 'Auto-generated activity is coming soon.'),
+            onTap: () => _toast(context, 'Sync + deep-linking is coming soon.'),
           ),
         ),
       ],
@@ -111,7 +76,7 @@ class ActivityTab extends StatelessWidget {
                 onPressed: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Deep-linking will be added when repositories are connected.')),
+                    const SnackBar(content: Text('Deep-linking will be added soon.')),
                   );
                 },
                 icon: const Icon(Icons.open_in_new),
@@ -145,6 +110,64 @@ class _ActivityEvent {
     required this.icon,
     required this.category,
   });
+}
+
+List<_ActivityEvent> _buildTimeline(UnitBundle b) {
+  // No real timestamps in the model yet; create stable “recent-looking” times.
+  // This keeps the UX dynamic from existing lists while staying backend-ready.
+  final now = DateTime.now();
+  final items = <_ActivityEvent>[];
+
+  // Rent ledger
+  for (var i = 0; i < b.rentLedger.length; i++) {
+    final r = b.rentLedger[i];
+    final when = now.subtract(Duration(days: 2 + i));
+    items.add(
+      _ActivityEvent(
+        title: 'Rent: ${r.monthLabel} • ${r.status.label}',
+        subtitle: 'Amount ${r.amount} • Due ${r.dueDate}',
+        when: when,
+        icon: Icons.payments_outlined,
+        category: 'Rent',
+      ),
+    );
+  }
+
+  // Maintenance tickets
+  for (var i = 0; i < b.maintenanceTickets.length; i++) {
+    final x = b.maintenanceTickets[i];
+    final when = now.subtract(Duration(days: 1 + i, hours: 3));
+    final assigned = (x.assignedTo == null || x.assignedTo!.trim().isEmpty)
+        ? 'Unassigned'
+        : 'Assigned to ${x.assignedTo}';
+    items.add(
+      _ActivityEvent(
+        title: 'Ticket: ${x.title}',
+        subtitle: '${x.status.label} • $assigned • ${x.category} • Priority ${x.priority}',
+        when: when,
+        icon: x.status.icon,
+        category: 'Maintenance',
+      ),
+    );
+  }
+
+  // Contractor assignment history
+  for (var i = 0; i < b.assignmentHistory.length; i++) {
+    final h = b.assignmentHistory[i];
+    final when = now.subtract(Duration(days: 1 + i, hours: 1));
+    items.add(
+      _ActivityEvent(
+        title: 'Vendor: ${h.contractor}',
+        subtitle: '${h.title} • ${h.status} • ${h.date}',
+        when: when,
+        icon: Icons.handyman_outlined,
+        category: 'Contractors',
+      ),
+    );
+  }
+
+  items.sort((a, c) => c.when.compareTo(a.when));
+  return items;
 }
 
 class _EventCard extends StatelessWidget {
@@ -231,107 +254,6 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Best-effort label extraction without depending on UnitBundle shape.
-/// This keeps the UI dynamic and prevents compile-time breakage.
-(String, String) _bundleLabels(UnitBundle bundle) {
-  final b = bundle as dynamic;
-
-  final propertyName = _safeLabel(
-    bundle: b,
-    candidates: [
-      () => b.propertyName,
-      () => b.propertyLabel,
-      () => b.propertyTitle,
-      () => b.buildingName,
-      () => b.communityName,
-      () => b.siteName,
-      () => b.complexName,
-      () => b.addressLine1,
-      () => b.address?.line1,
-      () => b.locationLabel,
-    ],
-    mapKeys: [
-      'propertyName',
-      'propertyLabel',
-      'propertyTitle',
-      'buildingName',
-      'communityName',
-      'siteName',
-      'complexName',
-      'addressLine1',
-      'locationLabel',
-    ],
-    fallback: 'Property',
-  );
-
-  final unitLabel = _safeLabel(
-    bundle: b,
-    candidates: [
-      () => b.unitLabel,
-      () => b.unitName,
-      () => b.unitTitle,
-      () => b.unitNumber,
-      () => b.suite,
-      () => b.doorNumber,
-      () => b.apartment,
-      () => b.spaceName,
-    ],
-    mapKeys: [
-      'unitLabel',
-      'unitName',
-      'unitTitle',
-      'unitNumber',
-      'suite',
-      'doorNumber',
-      'apartment',
-      'spaceName',
-    ],
-    fallback: 'Unit',
-  );
-
-  return (propertyName, unitLabel);
-}
-
-String _safeLabel({
-  required dynamic bundle,
-  required List<String Function()> candidates,
-  required List<String> mapKeys,
-  required String fallback,
-}) {
-  for (final candidate in candidates) {
-    final value = _tryGetString(candidate);
-    if (value != null) return value;
-  }
-  final mapValue = _tryGetMapString(bundle, mapKeys);
-  if (mapValue != null) return mapValue;
-  return fallback;
-}
-
-String? _tryGetString(Object? Function() fn) {
-  try {
-    final v = fn();
-    if (v == null) return null;
-    final s = v.toString().trim();
-    if (s.isEmpty) return null;
-    return s;
-  } catch (_) {
-    return null;
-  }
-}
-
-String? _tryGetMapString(dynamic bundle, List<String> keys) {
-  if (bundle is! Map) return null;
-  for (final key in keys) {
-    final value = _tryGetString(() {
-      if (!bundle.containsKey(key)) return '';
-      final v = bundle[key];
-      return v?.toString() ?? '';
-    });
-    if (value != null) return value;
-  }
-  return null;
 }
 
 String _formatRelative(DateTime dt) {
