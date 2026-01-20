@@ -124,11 +124,23 @@ class _JobCard extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Chip(label: Text(job.category)),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text(job.category)),
+                        Chip(label: Text(job.status)),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Chip(label: Text(job.status)),
-                  const Spacer(),
-                  Text(job.scheduledLabel, style: Theme.of(context).textTheme.labelMedium),
+                  Text(
+                    job.scheduledLabel,
+                    style: Theme.of(context).textTheme.labelMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(width: 6),
                   const Icon(Icons.chevron_right),
                 ],
