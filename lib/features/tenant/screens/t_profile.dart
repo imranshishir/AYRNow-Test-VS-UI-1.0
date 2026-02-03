@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ayrnow/features/community/screens/community_transfer_inbox_screen.dart';
+import 'package:ayrnow/features/tenant/profile_portability/tenant_portable_profile_screen.dart';
 
 class TenantProfileScreen extends StatelessWidget {
   const TenantProfileScreen({super.key});
@@ -8,6 +10,18 @@ class TenantProfileScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       children: [
+            ListTile(
+              leading: const Icon(Icons.badge_outlined),
+              title: const Text('Portable Tenant Profile'),
+              subtitle: const Text('Export & reuse your profile when moving'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => TenantPortableProfileScreen()),
+                );
+              },
+            ),
+
         Text('Profile', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         Card(

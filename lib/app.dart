@@ -4,6 +4,7 @@ import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/ui/shared/app_theme.dart';
 import 'package:ayrnow/ui/auth/role_login_screen.dart';
 import 'package:ayrnow/ui/home/home_shell.dart';
+import 'package:ayrnow/routes.dart';
 
 class AyrNowApp extends ConsumerWidget {
   const AyrNowApp({super.key});
@@ -15,6 +16,7 @@ class AyrNowApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       title: 'AYRNOW',
       theme: AppTheme.light(),
+      onGenerateRoute: AppRoutes.onGenerateRoute,
       home: loggedIn ? const HomeShell() : const RoleLoginScreen(),
     );
   }

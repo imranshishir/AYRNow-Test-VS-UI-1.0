@@ -60,6 +60,7 @@ class LandlordPropertiesListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Properties')),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'landlord_properties_add_property_fab',
         onPressed: () =>
             Navigator.of(context).pushNamed('/landlord/properties/add'),
         icon: const Icon(Icons.add),

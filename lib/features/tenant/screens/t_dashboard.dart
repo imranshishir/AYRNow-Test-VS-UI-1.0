@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/features/tenant/screens/t_finance_center.dart';
 import 'package:ayrnow/features/tenant/screens/t_models.dart';
 import 'package:ayrnow/features/tenant/screens/t_rent_flow.dart';
+import 'package:ayrnow/features/invite/store/invite_store.dart';
+import 'package:ayrnow/features/invite/models/invite_models.dart';
 
-class TenantDashboardScreen extends StatelessWidget {
+class TenantDashboardScreen extends ConsumerWidget {
   const TenantDashboardScreen({super.key});
 
   static const _props = <TenantProperty>[
@@ -48,8 +51,11 @@ class TenantDashboardScreen extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
+    final activeAccess = ref.watch(
+      inviteStoreProvider.select((state) => state.activeAccess),
+    );
 
     final next = _pickNextPayment(_props);
     final nextProp = next.$1;
@@ -70,6 +76,18 @@ class TenantDashboardScreen extends StatelessWidget {
         else
           const _EmptyPortfolioCard(),
         const SizedBox(height: 14),
+        if (activeAccess.isNotEmpty) ...[
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.verified_user_outlined),
+              title: Text(
+                'Access activated for ${activeAccess.first.propertyName} • ${activeAccess.first.unitName}',
+              ),
+              subtitle: Text('Permission: ${activeAccess.first.permission.label}'),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         Text('Quick actions', style: t.textTheme.titleMedium),
         const SizedBox(height: 10),
         Card(
@@ -81,7 +99,7 @@ class TenantDashboardScreen extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => TenantFinanceCenterScreen(properties: _props),
+                  builder: (_) => const TenantFinanceCenterScreen(properties: _props),
                 ),
               );
             },

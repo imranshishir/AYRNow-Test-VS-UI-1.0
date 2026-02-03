@@ -76,7 +76,7 @@ class _Overview extends StatelessWidget {
   final void Function(int) goToTab;
   const _Overview({required this.bundle, required this.goToTab});
 
-  
+  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
     return ListView(
@@ -89,8 +89,8 @@ class _Overview extends StatelessWidget {
             children: [
               Text(bundle.unitName, style: t.textTheme.titleLarge),
               const SizedBox(height: 6),
-              Text('Type: '),
-              Text('Status: '),
+              const Text('Type: '),
+              const Text('Status: '),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -133,10 +133,27 @@ class _Overview extends StatelessWidget {
               Text(bundle.tenantEmail),
               Text(bundle.tenantPhone),
               const SizedBox(height: 10),
-              FilledButton.tonalIcon(
-                onPressed: () => _openContactTenant(context),
-                icon: const Icon(Icons.chat_bubble_outline),
-                label: const Text('Contact tenant'),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => _openContactTenant(context),
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      label: const Text('Contact tenant'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => Navigator.of(context).pushNamed(
+                        '/landlord/unit/invite',
+                        arguments: bundle,
+                      ),
+                      icon: const Icon(Icons.person_add_alt_1_outlined),
+                      label: const Text('Invite'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -169,6 +186,22 @@ class _Overview extends StatelessWidget {
                     const SnackBar(content: Text('Upload will be added soon.')),
                   );
                   goToTab(4);
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.mark_email_unread_outlined),
+                title: const Text('Pending tenant invites'),
+                subtitle: const Text('View property-level invite status'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    '/landlord/invites/property',
+                    arguments: {
+                      'propertyId': bundle.propertyId,
+                      'propertyName': bundle.propertyName,
+                    },
+                  );
                 },
               ),
             ],

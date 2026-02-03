@@ -35,6 +35,7 @@ class LlPropertiesListScreen extends StatelessWidget {
         actions: const [SwitchRoleMenu()],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'll_properties_list_add_property_fab',
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const LlAddPropertyScreen()),
         ),
