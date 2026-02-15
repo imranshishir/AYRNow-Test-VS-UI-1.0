@@ -41,6 +41,10 @@ final tenantContextProvider =
 class TenantContextNotifier extends StateNotifier<TenantContext> {
   TenantContextNotifier() : super(_defaultTenantContext);
 
+  void setContext(TenantContext ctx) {
+    state = ctx;
+  }
+
   void selectProperty(String propertyId) {
     state = state.copyWith(selectedPropertyId: propertyId, selectedUnitId: '');
   }

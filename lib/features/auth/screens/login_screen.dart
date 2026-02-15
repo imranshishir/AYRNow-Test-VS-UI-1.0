@@ -5,6 +5,7 @@ import 'package:ayrnow/ui/shared/ayr_logo.dart';
 import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
 import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
 import 'package:ayrnow/features/auth/screens/register_screen.dart';
+import 'package:ayrnow/core/backend/providers/backend_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -43,23 +44,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      final success = await MockAuthService.login(email, password);
-      if (!mounted) return;
-      if (success) {
+      final useFirebase = ref.read(useFirebaseBackendProvider);
+      if (useFirebase) {
+        final authService = ref.read(firebaseAuthServiceProvider);
+        await authService.login(email, password);
+        if (!mounted) return;
         ref.read(isLoggedInProvider.notifier).state = true;
+        ref.read(hasChosenRoleProvider.notifier).state = true;
       } else {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Invalid email or password. Try again.';
-        });
+        final success = await MockAuthService.login(email, password);
+        if (!mounted) return;
+        if (success) {
+          ref.read(isLoggedInProvider.notifier).state = true;
+        } else {
+          setState(() {
+            _loading = false;
+            _errorMessage = 'Invalid email or password. Try again.';
+          });
+        }
       }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Something went wrong. Try again.';
-        });
-      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _errorMessage = 'Invalid email or password. Try again.';
+      });
     }
   }
 

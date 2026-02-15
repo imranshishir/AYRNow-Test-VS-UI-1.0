@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/core/models/user_role.dart';
 import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
+import 'package:ayrnow/core/backend/providers/backend_providers.dart';
 import 'package:ayrnow/features/community/screens/community_transfer_inbox_screen.dart';
 import 'package:ayrnow/features/tenant/profile_portability/tenant_portable_profile_screen.dart';
 import 'package:ayrnow/features/account_management/screens/managed_users_screen.dart';
@@ -179,7 +180,12 @@ class TenantProfileScreen extends ConsumerWidget {
               ),
             );
             if (confirm == true && context.mounted) {
-              await MockAuthService.logout();
+              final useFirebase = ref.read(useFirebaseBackendProvider);
+              if (useFirebase) {
+                await ref.read(firebaseAuthServiceProvider).logout();
+              } else {
+                await MockAuthService.logout();
+              }
               ref.read(hasChosenRoleProvider.notifier).state = false;
               ref.read(isLoggedInProvider.notifier).state = false;
               if (context.mounted) {

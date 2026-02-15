@@ -6,6 +6,8 @@ import 'package:ayrnow/ui/shared/ayr_logo.dart';
 import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
 import 'package:ayrnow/ui/shared/widgets/confirmation_screen.dart';
 import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
+import 'package:ayrnow/core/backend/providers/backend_providers.dart';
+import 'package:ayrnow/core/backend/services/firebase_auth_service.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -50,14 +52,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _loading = true);
 
     try {
-      final success = await MockAuthService.register(
-        name: name,
-        email: email,
-        password: password,
-        role: _selectedRole,
-      );
-      if (!mounted) return;
-      if (success) {
+      final useFirebase = ref.read(useFirebaseBackendProvider);
+      if (useFirebase) {
+        final authService = ref.read(firebaseAuthServiceProvider);
+        await authService.register(
+          email: email,
+          password: password,
+          displayName: name,
+          roleType: roleTypeFromUserRole(_selectedRole),
+        );
+        if (!mounted) return;
         ref.read(isLoggedInProvider.notifier).state = true;
         ref.read(currentRoleProvider.notifier).state = _selectedRole;
         ref.read(hasChosenRoleProvider.notifier).state = true;
@@ -75,16 +79,43 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         );
       } else {
-        setState(() {
-          _loading = false;
-          _errorMessage = 'Registration failed. Try a different email.';
-        });
+        final success = await MockAuthService.register(
+          name: name,
+          email: email,
+          password: password,
+          role: _selectedRole,
+        );
+        if (!mounted) return;
+        if (success) {
+          ref.read(isLoggedInProvider.notifier).state = true;
+          ref.read(currentRoleProvider.notifier).state = _selectedRole;
+          ref.read(hasChosenRoleProvider.notifier).state = true;
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => ConfirmationScreen(
+                title: 'Account created successfully',
+                message: 'Welcome to AYRNOW. You can now use the app.',
+                primaryButtonLabel: 'Go to dashboard',
+                onPrimaryPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
+            ),
+          );
+        } else {
+          setState(() {
+            _loading = false;
+            _errorMessage = 'Registration failed. Try a different email.';
+          });
+        }
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() {
           _loading = false;
-          _errorMessage = 'Something went wrong. Try again.';
+          _errorMessage =
+              e is Exception ? 'Registration failed. Try a different email.' : 'Something went wrong. Try again.';
         });
       }
     }
