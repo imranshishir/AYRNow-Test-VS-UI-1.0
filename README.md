@@ -15,6 +15,6 @@ Adds:
 flutter create ayrnow_app
 Copy this repo’s `pubspec.yaml`, `analysis_options.yaml`, and `lib/` into your new app folder.
 flutter pub get
-flutter run
+**Simulator (default):** `./scripts/run_simulator.sh` or `flutter run -d ios`
 
 Generated: 2026-01-15 05:53

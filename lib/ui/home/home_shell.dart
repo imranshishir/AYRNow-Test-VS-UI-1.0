@@ -30,6 +30,7 @@ class HomeShell extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (v) {
               if (v == 'switch') {
+                ref.read(hasChosenRoleProvider.notifier).state = false;
                 ref.read(isLoggedInProvider.notifier).state = false;
               }
             },

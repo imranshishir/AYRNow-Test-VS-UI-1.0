@@ -4,9 +4,23 @@ class AyrLogo extends StatelessWidget {
   final double size;
   const AyrLogo({super.key, this.size = 56});
 
+  static const String _assetPath = 'assets/logo/logo.png';
+
   @override
   Widget build(BuildContext context) {
-    // Simple “house + check” logo feel (no asset needed yet).
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        _assetPath,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, __, ___) => _fallbackLogo(context),
+      ),
+    );
+  }
+
+  Widget _fallbackLogo(BuildContext context) {
     return Container(
       width: size,
       height: size,

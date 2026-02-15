@@ -12,6 +12,7 @@ import 'package:ayrnow/features/landlord/screens/ll_properties_list_screen.dart'
 import 'package:ayrnow/features/landlord/screens/landlord_rent_screen.dart';
 import 'package:ayrnow/features/community/screens/community_tab_screen.dart';
 import 'package:ayrnow/features/landlord/screens/landlord_maint_pros_shell_screen.dart';
+import 'package:ayrnow/features/account_management/screens/managed_users_screen.dart';
 
 class LandlordShell extends ConsumerStatefulWidget {
   const LandlordShell({super.key});
@@ -46,15 +47,23 @@ class _LandlordShellState extends ConsumerState<LandlordShell> {
               if (v == 'switch') {}
               if (v == 'transfers') {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => CommunityTransferInboxScreen()),
+                  MaterialPageRoute(builder: (_) => const CommunityTransferInboxScreen()),
                 );
               }
               if (v == 'invites') {
                 Navigator.of(context).pushNamed('/landlord/invites');
               }
+              if (v == 'managed') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ManagedUsersScreen(isLandlord: true),
+                  ),
+                );
+              }
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'switch', child: Text('Switch role')),
+              PopupMenuItem(value: 'managed', child: Text('Managed Users')),
               PopupMenuItem(value: 'transfers', child: Text('Tenant Transfers')),
               PopupMenuItem(value: 'invites', child: Text('Pending Invites')),
             ],

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ayrnow/core/session/tenant_context.dart';
 import 'package:ayrnow/features/tenant/screens/t_finance_center.dart';
 import 'package:ayrnow/features/tenant/screens/t_models.dart';
 import 'package:ayrnow/features/tenant/screens/t_rent_flow.dart';
+import 'package:ayrnow/features/tenant/screens/dashboard_summary_cards.dart';
 import 'package:ayrnow/features/invite/store/invite_store.dart';
+import 'package:ayrnow/ui/shared/widgets/empty_state_widget.dart';
 import 'package:ayrnow/features/invite/models/invite_models.dart';
 
 class TenantDashboardScreen extends ConsumerWidget {
@@ -53,13 +56,16 @@ class TenantDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
+    final ctx = ref.watch(tenantContextProvider);
     final activeAccess = ref.watch(
       inviteStoreProvider.select((state) => state.activeAccess),
     );
 
-    final next = _pickNextPayment(_props);
-    final nextProp = next.$1;
-    final nextUnit = next.$2;
+    final scoped = _resolveScopedPropertyAndUnit(
+        _props, ctx.selectedPropertyId, ctx.selectedUnitId);
+    final nextProp = scoped.$1;
+    final nextUnit = scoped.$2;
+    final scopedProps = nextProp != null ? [nextProp] : <TenantProperty>[];
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
@@ -67,8 +73,15 @@ class TenantDashboardScreen extends ConsumerWidget {
         Text('Dashboard', style: t.textTheme.titleLarge),
         const SizedBox(height: 6),
         Text(
-          'Upcoming payments, finance history, statements, and utilities.',
+          'Your unit: rent, maintenance, and community.',
           style: t.textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 14),
+        DashboardSummaryCards(
+          nextProperty: nextProp,
+          nextUnit: nextUnit,
+          maintenanceCount: 0,
+          communityUpdatesCount: 0,
         ),
         const SizedBox(height: 14),
         if (nextProp != null && nextUnit != null)
@@ -92,16 +105,31 @@ class TenantDashboardScreen extends ConsumerWidget {
         const SizedBox(height: 10),
         Card(
           child: ListTile(
+            leading: const Icon(Icons.card_giftcard_outlined),
+            title: const Text('Have an invite code?'),
+            subtitle: const Text('Join a property with a code'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => navigateToInviteByCode(context),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Card(
+          child: ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),
             title: const Text('Finance'),
             subtitle: const Text('History, receipts, statements'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const TenantFinanceCenterScreen(properties: _props),
-                ),
-              );
+              if (nextProp == null) {
+                _showSelectUnitDialog(context, ref, _props);
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TenantFinanceCenterScreen(properties: scopedProps),
+                  ),
+                );
+              }
             },
           ),
         ),
@@ -142,23 +170,38 @@ class TenantDashboardScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 22),
-        Text('My Rentals', style: t.textTheme.titleMedium),
+        Text('My unit', style: t.textTheme.titleMedium),
         const SizedBox(height: 10),
-        ..._props.map((p) => _PropertyCard(prop: p)),
+        ...scopedProps.map((p) => _PropertyCard(prop: p)),
       ],
     );
   }
 
-  (TenantProperty?, TenantUnit?) _pickNextPayment(List<TenantProperty> props) {
+  (TenantProperty?, TenantUnit?) _resolveScopedPropertyAndUnit(
+    List<TenantProperty> props,
+    String selectedPropertyId,
+    String selectedUnitId,
+  ) {
+    TenantProperty? prop;
     for (final p in props) {
-      for (final u in p.units) {
-        if (u.isOverdue) return (p, u);
+      if (p.id == selectedPropertyId) {
+        prop = p;
+        break;
       }
     }
-    if (props.isNotEmpty && props.first.units.isNotEmpty) {
-      return (props.first, props.first.units.first);
+    prop ??= props.isNotEmpty ? props.first : null;
+    if (prop == null || prop.units.isEmpty) return (prop, null);
+    TenantUnit? unit;
+    if (selectedUnitId.isNotEmpty) {
+      for (final u in prop.units) {
+        if (u.id == selectedUnitId) {
+          unit = u;
+          break;
+        }
+      }
     }
-    return (null, null);
+    unit ??= prop.units.first;
+    return (prop, unit);
   }
 }
 
@@ -349,6 +392,80 @@ class _UtilityChip extends StatelessWidget {
       onPressed: onTap,
     );
   }
+}
+
+void _showSelectUnitDialog(
+  BuildContext context,
+  WidgetRef ref,
+  List<TenantProperty> props,
+) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      content: EmptyStateWidget(
+        icon: Icons.account_balance_wallet_outlined,
+        title: 'Select your unit',
+        subtitle:
+            'Choose a property and unit to view rent and finance.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Not now'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            _showPropertyUnitSheet(
+              context,
+              ref.read(tenantContextProvider.notifier),
+              props,
+            );
+          },
+          child: const Text('Select now'),
+        ),
+      ],
+    ),
+  );
+}
+
+void _showPropertyUnitSheet(
+  BuildContext context,
+  TenantContextNotifier notifier,
+  List<TenantProperty> props,
+) {
+  showModalBottomSheet(
+    context: context,
+    builder: (sheetContext) => ListView(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: [
+        ...props.expand((prop) => [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  prop.name,
+                  style: Theme.of(sheetContext).textTheme.titleSmall,
+                ),
+              ),
+              ...prop.units.map(
+                (unit) => ListTile(
+                  title: Text(unit.label),
+                  subtitle: Text(prop.name),
+                  onTap: () {
+                    notifier.selectProperty(prop.id);
+                    notifier.selectUnit(unit.id);
+                    Navigator.of(sheetContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Selection saved')),
+                    );
+                  },
+                ),
+              ),
+            ]),
+      ],
+    ),
+  );
 }
 
 void _openComingSoon(BuildContext context, String title, String body) {

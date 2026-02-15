@@ -98,6 +98,23 @@ class CommunityPost {
 }
 
 @immutable
+class CommunityComment {
+  final String id;
+  final String postId;
+  final CommunityAuthor author;
+  final String body;
+  final DateTime createdAt;
+
+  const CommunityComment({
+    required this.id,
+    required this.postId,
+    required this.author,
+    required this.body,
+    required this.createdAt,
+  });
+}
+
+@immutable
 class CommunityNotificationItem {
   final String id;
   final String title;

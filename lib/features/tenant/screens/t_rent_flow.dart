@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ayrnow/features/tenant/screens/t_models.dart';
+import 'package:ayrnow/core/services/mock_service.dart';
 
 class TenantPropertyUnitsScreen extends StatelessWidget {
   final TenantProperty property;
@@ -220,14 +221,81 @@ class TenantPayRentScreen extends StatefulWidget {
 
 class _TenantPayRentScreenState extends State<TenantPayRentScreen> {
   String _method = 'Bank (ACH)';
+  final _noteController = TextEditingController();
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _confirmAndPay() async {
+    final amountCents = widget.unit.rentCents;
+    if (amountCents <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid amount. Please contact support.')),
+      );
+      return;
+    }
+    final amount = money(amountCents);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirm payment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${widget.property.name} • ${widget.unit.label}'),
+            const SizedBox(height: 8),
+            Text('Amount: $amount', style: Theme.of(ctx).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text('Method: $_method', style: Theme.of(ctx).textTheme.bodyMedium),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Confirm & Pay'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      final ref = await MockService.submitRentPayment(
+        property: widget.property,
+        unit: widget.unit,
+        method: _method,
+        note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => TenantReceiptScreen(
+            title: 'Rent Payment Successful',
+            subtitle: '$amount via $_method',
+            reference: ref,
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final amount = money(widget.unit.rentCents);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Pay Rent')),
+      appBar: AppBar(title: const Text('Pay Rent')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -239,21 +307,21 @@ class _TenantPayRentScreenState extends State<TenantPayRentScreen> {
                 children: [
                   Text(widget.property.name,
                       style: Theme.of(context).textTheme.titleMedium),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(widget.unit.label,
                       style: Theme.of(context).textTheme.bodyMedium),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text('Amount', style: Theme.of(context).textTheme.labelLarge),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(amount,
                       style: Theme.of(context).textTheme.headlineSmall),
                 ],
               ),
             ),
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Text('Payment method', style: Theme.of(context).textTheme.labelLarge),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: _method,
             onChanged: (v) => setState(() => _method = v ?? _method),
@@ -264,42 +332,28 @@ class _TenantPayRentScreenState extends State<TenantPayRentScreen> {
                   value: 'Credit Card', child: Text('Credit Card')),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           TextField(
+            controller: _noteController,
             decoration: const InputDecoration(
               labelText: 'Note (optional)',
               hintText: 'January rent',
             ),
             maxLines: 2,
           ),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
           FilledButton.icon(
-            onPressed: _saving
-                ? null
-                : () async {
-                    setState(() => _saving = true);
-                    await Future<void>.delayed(
-                        const Duration(milliseconds: 900));
-                    if (!mounted) return;
-                    setState(() => _saving = false);
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => TenantReceiptScreen(
-                          title: 'Rent Payment Successful',
-                          subtitle: '$amount via $_method',
-                          reference:
-                              'AYR-${DateTime.now().millisecondsSinceEpoch}',
-                        ),
-                      ),
-                    );
-                  },
+            onPressed: _saving ? null : _confirmAndPay,
             icon: _saving
-                ? SizedBox(
-                    width: 18, height: 18, child: CircularProgressIndicator())
-                : Icon(Icons.lock),
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.lock),
             label: Text(_saving ? 'Processing...' : 'Confirm & Pay'),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             'Demo only: no real payment is processed.',
             style: Theme.of(context).textTheme.bodySmall,
@@ -345,11 +399,19 @@ class TenantReceiptScreen extends StatelessWidget {
                   SizedBox(height: 10),
                   Text('Reference: $reference',
                       style: Theme.of(context).textTheme.labelMedium),
-                  SizedBox(height: 16),
-                  FilledButton.tonalIcon(
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
+                    icon: const Icon(Icons.home),
+                    label: const Text('Return to Dashboard'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.arrow_back),
-                    label: Text('Back to unit'),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back to unit'),
                   ),
                 ],
               ),

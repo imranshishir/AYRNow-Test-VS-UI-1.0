@@ -3,3 +3,4 @@ import 'package:ayrnow/core/models/user_role.dart';
 
 final currentRoleProvider = StateProvider<UserRole>((ref) => UserRole.landlord);
 final isLoggedInProvider = StateProvider<bool>((ref) => false);
+final hasChosenRoleProvider = StateProvider<bool>((ref) => false);

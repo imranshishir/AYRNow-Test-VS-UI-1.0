@@ -46,13 +46,11 @@ class InviteAcceptScreen extends ConsumerWidget {
                         Navigator.of(context).pop();
                         return;
                       }
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Access activated. You are attached to this unit.'),
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const _InviteSuccessScreen(),
                         ),
                       );
-                      Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                     icon: const Icon(Icons.verified_outlined),
                     label: const Text('Accept & activate'),
@@ -68,6 +66,46 @@ class InviteAcceptScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InviteSuccessScreen extends StatelessWidget {
+  const _InviteSuccessScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.check_circle_outline, size: 64, color: theme.colorScheme.primary),
+              const SizedBox(height: 20),
+              Text(
+                'Access activated',
+                style: theme.textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'You are now attached to this unit. You can view rent, submit tickets, and more from your dashboard.',
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                icon: const Icon(Icons.home),
+                label: const Text('Back to dashboard'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

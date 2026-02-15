@@ -5,19 +5,23 @@ import '../models/community_models.dart';
 class CommunityState {
   final List<CommunityPost> posts;
   final CommunityScope? selectedScope;
+  final Map<String, List<CommunityComment>> commentsByPostId;
 
   const CommunityState({
     required this.posts,
     required this.selectedScope,
+    this.commentsByPostId = const {},
   });
 
   CommunityState copyWith({
     List<CommunityPost>? posts,
     CommunityScope? selectedScope,
+    Map<String, List<CommunityComment>>? commentsByPostId,
   }) {
     return CommunityState(
       posts: posts ?? this.posts,
       selectedScope: selectedScope,
+      commentsByPostId: commentsByPostId ?? this.commentsByPostId,
     );
   }
 }
@@ -82,6 +86,32 @@ class CommunityStore extends StateNotifier<CommunityState> {
       return state.posts.firstWhere((p) => p.id == id);
     } catch (_) {
       return null;
+    }
+  }
+
+  List<CommunityComment> commentsFor(String postId) {
+    return state.commentsByPostId[postId] ?? [];
+  }
+
+  void addComment(String postId, String body, CommunityAuthor author) {
+    final list = List<CommunityComment>.from(state.commentsByPostId[postId] ?? []);
+    list.add(CommunityComment(
+      id: 'c-${DateTime.now().millisecondsSinceEpoch}',
+      postId: postId,
+      author: author,
+      body: body.trim(),
+      createdAt: DateTime.now(),
+    ));
+    final updated = Map<String, List<CommunityComment>>.from(state.commentsByPostId);
+    updated[postId] = list;
+    state = state.copyWith(commentsByPostId: updated);
+    final post = findById(postId);
+    if (post != null) {
+      final posts = state.posts.map((p) {
+        if (p.id != postId) return p;
+        return p.copyWith(commentCount: post.commentCount + 1);
+      }).toList();
+      state = state.copyWith(posts: posts);
     }
   }
 }
