@@ -91,7 +91,7 @@ curl -s -H "X-Dev-AccountId: aaaaaaaa-0000-0000-0000-000000000001" \
      http://localhost:8080/api/v1/properties
 ```
 
-These IDs come from V2 seed (`V2__dev_seed.sql`). DevAuth is disabled in staging/prod.
+These IDs come from V2 seed (`V2__dev_seed.sql`): account `aaaaaaaa-0000-0000-0000-000000000001`, user `bbbbbbbb-0000-0000-0000-000000000001`. DevAuth is disabled in staging/prod.
 
 ---
 
@@ -121,6 +121,8 @@ cd backend && ./scripts/build_jar.sh
 # Health check
 curl -s http://localhost:8080/api/v1/health
 
-# Swagger UI
+# Swagger UI (springdoc)
 open http://localhost:8080/swagger-ui.html
+# OpenAPI JSON
+curl -s http://localhost:8080/api/docs
 ```

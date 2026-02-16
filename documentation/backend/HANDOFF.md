@@ -16,7 +16,7 @@ For engineers joining the project. Read this first.
 |-------|------|----------------|
 | **api** | `com.ayrnow.api` | Controllers, DTOs, `GlobalExceptionHandler`, `ConflictException`, `ResourceNotFoundException` |
 | **service** | `com.ayrnow.service` | Business logic, orchestration, access checks |
-| **domain/repository** | `com.ayrnow.domain.repository` | JPA repositories |
+| **repository** | `com.ayrnow.domain.repository` | JPA repositories (AccountRepository, LedgerEntryRepository, etc.) |
 | **domain/entity** | `com.ayrnow.domain.entity` | JPA entities |
 | **security** | `com.ayrnow.security` | `DevAuthPrincipal`, `JwtAuthFilter`, `DevAuthFilter` (local only), `SecurityConfig` |
 | **config** | `com.ayrnow.config` | `AuthProperties`, `StartupValidator`, `PasswordEncoderConfig` |
@@ -115,6 +115,8 @@ Params: `page` (default 0), `size` (default 20).
 2. Prefer additive changes.
 3. Add indexes for query patterns.
 
+**Existing migrations:** V1 (init), V2 (dev seed), V3–V4 (lease uniqueness, soft delete), V5 (unit_members), V6 (lease_tenants), V7 (invites), V8 (tickets), V9 (contractors), V10 (posts), V11 (security/visitors), V12 (ledger), V13 (Stripe), V14 (tenant transfer), V15 (auth).
+
 ### Step 2: Entity + Repository
 
 1. Add entity in `domain.entity` with `@Entity`, `@Table`, proper `@Column`/`@ManyToOne`.
@@ -142,7 +144,7 @@ Params: `page` (default 0), `size` (default 20).
 
 ### Step 6: Access Rules
 
-- Identify roles: landlord, manager, owner, tenant, family, contractor, security_guard.
+- Identify roles: landlord, manager, owner, tenant, family, cotenant/co_tenant, contractor, security_guard. (`property_manager`/`pm` normalize to `manager`.)
 - Enforce in service: `if (!isLandlord(...)) throw new AccessDeniedException(...)`.
 - Document in [API_TESTING.md](API_TESTING.md).
 

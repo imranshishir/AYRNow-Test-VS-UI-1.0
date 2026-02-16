@@ -250,7 +250,7 @@ curl -s -X POST -H "Authorization: Bearer <ACCESS_TOKEN>" <BASE_URL>/api/v1/tick
 | POST /contractors | Create | Same |
 | PATCH /contractors/{id} | Update | Same |
 | DELETE /contractors/{id} | Delete | Same |
-| GET /contractors/{id}/assignments | List | Same |
+| GET /contractors/{id}/assignments | List | Landlord/pm or contractor (own assignments only) |
 
 ```bash
 curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" "<BASE_URL>/api/v1/contractors?page=0&size=20"
@@ -305,8 +305,12 @@ curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <A
 
 ```bash
 curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" "<BASE_URL>/api/v1/notifications?page=0&size=20"
+# Mark all read
 curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -d '{"all":true}' <BASE_URL>/api/v1/notifications/read
+# Mark specific IDs read
+curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -d '{"notificationIds":["<NOTIFICATION_ID_1>","<NOTIFICATION_ID_2>"]}' <BASE_URL>/api/v1/notifications/read
 ```
 
 ---
@@ -315,8 +319,8 @@ curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <A
 
 | Endpoint | Purpose | Auth |
 |----------|---------|------|
-| GET /visitors | List | Landlord/pm/security_guard |
-| POST /visitors | Create entry | security_guard/landlord; status=pending if approvalRequired |
+| GET /visitors | List | Landlord/pm/owner/security_guard |
+| POST /visitors | Create entry | Landlord/pm/owner/security_guard; status=pending if approvalRequired |
 | POST /visitors/{id}/approve | Approve | Landlord; 409 if not pending |
 | POST /visitors/{id}/deny | Deny | Landlord |
 
@@ -340,10 +344,10 @@ All ledger writes require `Idempotency-Key` header (UUID).
 |----------|---------|------|
 | GET /ledger/units/{id} | List by unit | Landlord/pm/tenant |
 | GET /ledger/leases/{id} | List by lease | Same |
-| POST /ledger/charges | Create charge | Landlord |
-| POST /ledger/payments | Create payment | Tenant |
-| POST /ledger/refunds | Refund | Landlord |
-| POST /ledger/adjustments | Adjust | Landlord |
+| POST /ledger/charges | Create charge | Landlord/pm/owner (staff) |
+| POST /ledger/payments | Create payment | Tenant/family/cotenant |
+| POST /ledger/refunds | Refund | Landlord/pm/owner (staff) |
+| POST /ledger/adjustments | Adjust | Landlord/pm/owner (staff) |
 | GET /balances/units/{id} | Unit balance | Same |
 | GET /balances/leases/{id} | Lease balance | Same |
 
@@ -360,8 +364,16 @@ curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <A
   -H "Idempotency-Key: $(uuidgen)" \
   -d '{"unitId":"<UNIT_ID>","leaseId":"<LEASE_ID>","amountCents":150000,"occurredOn":"2025-01-02","memo":"Rent"}' \
   <BASE_URL>/api/v1/ledger/payments
-curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" <BASE_URL>/api/v1/balances/units/<UNIT_ID>
-curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" <BASE_URL>/api/v1/balances/leases/<LEASE_ID>
+curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"unitId":"<UNIT_ID>","leaseId":"<LEASE_ID>","amountCents":5000,"occurredOn":"2025-01-15","memo":"Refund"}' \
+  <BASE_URL>/api/v1/ledger/refunds
+curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{"unitId":"<UNIT_ID>","direction":"credit","subtype":"other","amountCents":1000,"occurredOn":"2025-01-20","memo":"Adjustment"}' \
+  <BASE_URL>/api/v1/ledger/adjustments
+curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" "<BASE_URL>/api/v1/balances/units/<UNIT_ID>?asOf=2025-01-31"
+curl -s -H "Authorization: Bearer <ACCESS_TOKEN>" "<BASE_URL>/api/v1/balances/leases/<LEASE_ID>?asOf=2025-01-31"
 ```
 
 ---
