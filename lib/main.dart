@@ -1,28 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'ui/app_theme.dart';
-import 'ui/role_selector_screen.dart';
-import 'ui/app_shell.dart';
-import 'navigation/routes.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:ayrnow/app.dart';
 
-void main() {
-  runApp(const ProviderScope(child: AyrnowApp()));
-}
-
-class AyrnowApp extends StatelessWidget {
-  const AyrnowApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AYRNOW Phase-2',
-      theme: buildAyrnowTheme(),
-      initialRoute: '/',
-      routes: {
-        '/home': (context) => const AppShell(),
-        '/': (context) => const RoleSelectorScreen(),
-        ...buildRoutes(),
-      },
-    );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {
+    // Firebase not configured (e.g. missing GoogleService-Info.plist).
+    // useFirebaseBackendProvider will return false and mock auth will be used.
   }
+  runApp(const ProviderScope(child: AyrNowApp()));
 }

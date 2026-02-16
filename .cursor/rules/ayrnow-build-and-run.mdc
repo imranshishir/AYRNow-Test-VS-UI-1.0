@@ -1,0 +1,17 @@
+---
+description: After code changes and build, run the app on the iOS simulator.
+globs: 
+alwaysApply: true
+---
+
+# AYRNOW: Build and run on simulator
+
+After making code changes and running a build for this project:
+
+1. **Run the app on the iOS simulator** so the user can verify the change.
+
+Use either:
+- `./scripts/run_simulator.sh` (from project root), which builds for simulator then runs, or
+- `flutter build ios --simulator --no-codesign` then `flutter run -d ios`
+
+Prefer running the full script so the user sees the app launch on the simulator after each build.
