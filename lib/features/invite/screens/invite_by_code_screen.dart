@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 import 'package:ayrnow/features/invite/store/invite_store.dart';
 import 'package:ayrnow/features/invite/screens/invite_accept_screen.dart';
-import 'package:ayrnow/core/services/mock_service.dart';
 import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
 
 class InviteByCodeScreen extends ConsumerStatefulWidget {
@@ -25,6 +25,9 @@ class _InviteByCodeScreenState extends ConsumerState<InviteByCodeScreen> {
     super.dispose();
   }
 
+  static bool _isValidCodeFormat(String s) =>
+      s.length >= 6 && RegExp(r'^[A-Za-z0-9\-]+$').hasMatch(s);
+
   Future<void> _submit() async {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
@@ -34,17 +37,28 @@ class _InviteByCodeScreenState extends ConsumerState<InviteByCodeScreen> {
       });
       return;
     }
-    if (!MockService.isValidInviteCodeFormat(code)) {
+    if (!_isValidCodeFormat(code)) {
       setState(() {
         _error = 'Code must be at least 6 characters (letters, numbers, or hyphens)';
         _loading = false;
       });
       return;
     }
+    final useRealApi = ref.read(featureFlagsProvider).invites;
     setState(() {
       _error = null;
       _loading = true;
     });
+
+    if (useRealApi) {
+      setState(() => _loading = false);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => InviteAcceptScreen(code: code)),
+      );
+      return;
+    }
+
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     final store = ref.read(inviteStoreProvider.notifier);

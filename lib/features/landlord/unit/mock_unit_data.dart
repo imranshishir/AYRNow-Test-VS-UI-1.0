@@ -258,12 +258,17 @@ class MockUnitData {
     );
   }
 
-  static UnitBundle bundle({required String propertyId, required String unitId}) {
+  static UnitBundle bundle({
+    required String propertyId,
+    required String unitId,
+    String? propertyName,
+    String? unitName,
+  }) {
     return UnitBundle(
       propertyId: propertyId,
       unitId: unitId,
-      propertyName: 'Property $propertyId',
-      unitName: 'Unit $unitId',
+      propertyName: propertyName ?? 'Property $propertyId',
+      unitName: unitName ?? 'Unit $unitId',
       unitType: 'Apartment',
       occupancyStatus: 'Occupied',
       tenantName: 'John Tenant',

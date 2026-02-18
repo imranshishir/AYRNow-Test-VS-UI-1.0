@@ -9,12 +9,16 @@ import 'tabs/activity_tab.dart';
 class UnitTabsScreen extends StatefulWidget {
   final String propertyId;
   final String unitId;
+  final String? propertyName;
+  final String? unitName;
   final int initialTab;
 
   const UnitTabsScreen({
     super.key,
     required this.propertyId,
     required this.unitId,
+    this.propertyName,
+    this.unitName,
     this.initialTab = 0,
   });
 
@@ -39,7 +43,12 @@ class _UnitTabsScreenState extends State<UnitTabsScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final bundle = MockUnitData.bundle(propertyId: widget.propertyId, unitId: widget.unitId);
+    final bundle = MockUnitData.bundle(
+      propertyId: widget.propertyId,
+      unitId: widget.unitId,
+      propertyName: widget.propertyName,
+      unitName: widget.unitName,
+    );
 
     return Scaffold(
       appBar: AppBar(

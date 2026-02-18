@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 import 'package:ayrnow/features/invite/models/invite_models.dart';
 import 'package:ayrnow/features/invite/store/invite_store.dart';
 import 'package:ayrnow/features/invite/screens/invite_accept_screen.dart';
@@ -10,7 +11,38 @@ class InviteLandingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invite = ref.watch(inviteStoreProvider.notifier).findByCode(code);
+    final useRealApi = ref.watch(featureFlagsProvider).invites;
+    final invite = useRealApi ? null : ref.watch(inviteStoreProvider.notifier).findByCode(code);
+
+    if (useRealApi) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Tenant Invite')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('You have been invited to join a unit.', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => InviteAcceptScreen(code: code)),
+                      ),
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Accept invite'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Tenant Invite')),

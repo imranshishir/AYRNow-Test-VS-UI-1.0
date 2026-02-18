@@ -105,8 +105,12 @@ class LlPropertyDetailScreen extends ConsumerWidget {
                   unit: u,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (_) =>
-                            UnitTabsScreen(propertyId: property.id, unitId: u.id)),
+                        builder: (_) => UnitTabsScreen(
+                              propertyId: property.id,
+                              unitId: u.id,
+                              propertyName: property.name,
+                              unitName: u.label,
+                            )),
                   ),
                 ),
               )),

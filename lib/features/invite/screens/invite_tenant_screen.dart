@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ayrnow/core/api/endpoints/invites_api.dart';
+import 'package:ayrnow/core/api/providers/api_client_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 import 'package:ayrnow/features/invite/models/invite_models.dart';
 import 'package:ayrnow/features/invite/store/invite_store.dart';
 import 'package:ayrnow/features/landlord/unit/mock_unit_data.dart';
@@ -15,6 +18,7 @@ class InviteTenantScreen extends ConsumerStatefulWidget {
 class _InviteTenantScreenState extends ConsumerState<InviteTenantScreen> {
   final _contact = TextEditingController();
   InvitePermission _permission = InvitePermission.viewOnly;
+  bool _sending = false;
 
   @override
   void dispose() {
@@ -74,21 +78,56 @@ class _InviteTenantScreenState extends ConsumerState<InviteTenantScreen> {
           Text(_permission.description, style: t.textTheme.bodySmall),
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: _sendInvite,
-            icon: const Icon(Icons.send_outlined),
-            label: const Text('Send invite'),
+            onPressed: _sending ? null : _sendInvite,
+            icon: _sending ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send_outlined),
+            label: Text(_sending ? 'Sending...' : 'Send invite'),
           ),
         ],
       ),
     );
   }
 
-  void _sendInvite() {
+  String _roleToBackend(InvitePermission p) {
+    return switch (p) {
+      InvitePermission.viewOnly => 'tenant',
+      InvitePermission.billing => 'family',
+      InvitePermission.full => 'cotenant',
+    };
+  }
+
+  Future<void> _sendInvite() async {
     final contact = _contact.text.trim();
     if (contact.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter an email or phone to continue.')),
       );
+      return;
+    }
+
+    final useRealApi = ref.read(featureFlagsProvider).invites;
+    if (useRealApi) {
+      setState(() => _sending = true);
+      try {
+        final dio = ref.read(apiClientProvider);
+        final api = InvitesApi(dio);
+        final contactType = contact.contains('@') ? 'email' : 'phone';
+        await api.create(widget.bundle.unitId,
+          contactType: contactType,
+          contactValue: contact,
+          role: _roleToBackend(_permission),
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invite sent')),
+        );
+        Navigator.of(context).pop(true);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _sending = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${e.toString().split('\n').first}')),
+        );
+      }
       return;
     }
 
