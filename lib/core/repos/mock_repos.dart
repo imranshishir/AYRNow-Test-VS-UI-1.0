@@ -9,12 +9,16 @@ import 'tenant_transfer_repo.dart';
 import 'mock_tenant_transfer_repo.dart';
 import 'household_repo.dart';
 import 'mock_household_repo.dart';
+import 'notifications_repo.dart';
+import 'mock_notifications_repo.dart';
+import 'app_repos.dart';
 
-class MockRepos {
+class MockRepos implements AppRepos {
   final _rng = Random(7);
   final CommunityRepo _communityRepo = MockCommunityRepo();
   late final TenantTransferRepo tenantTransferRepo = MockTenantTransferRepo();
   late final HouseholdRepo householdRepo = MockHouseholdRepo();
+  late final NotificationsRepo notificationsRepo = MockNotificationsRepo();
 
   CommunityRepo get communityRepo => _communityRepo;
 

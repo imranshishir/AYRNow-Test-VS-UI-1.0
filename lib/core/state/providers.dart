@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repos/mock_repos.dart';
+import '../repos/app_repos.dart';
+import '../backend/api_client.dart';
+import '../backend/api_config.dart';
 import '../models/role.dart';
 import '../models/user.dart';
 import '../models/rent.dart';
@@ -9,11 +12,37 @@ import '../models/approval.dart';
 import '../../features/community/models/community_models.dart';
 import '../../features/tenant_transfer/models/tenant_transfer_models.dart';
 import '../../features/household/models/household_models.dart';
+import '../../features/notifications/models/notification_models.dart';
+import 'backend_flags.dart';
 
-final reposProvider = Provider<MockRepos>((ref) => MockRepos());
+import '../backend/api_repos.dart' as api;
+
+final reposProvider = Provider<AppRepos>((ref) {
+  final useApi = ref.watch(useApiBackendProvider);
+  if (useApi) {
+    return api.ApiRepos(ApiClient(baseUrl: apiBaseUrl));
+  }
+  return MockRepos();
+});
 
 final currentUserProvider = StateProvider<AppUser>((ref) {
   return const AppUser(id: 'u1', name: 'Demo User', role: UserRole.landlord);
+});
+
+/// When useApiBackend is true, fetches /v1/me. Non-blocking; errors surface via AsyncValue.
+final meProvider = FutureProvider<AppUser>((ref) async {
+  final useApi = ref.watch(useApiBackendProvider);
+  if (!useApi) return ref.read(currentUserProvider);
+  final repos = ref.read(reposProvider);
+  if (repos is api.ApiRepos) return repos.getMe();
+  return ref.read(currentUserProvider);
+});
+
+/// Session user: uses me when API backend, else currentUserProvider. Use when API may be on.
+final sessionUserProvider = Provider<AppUser>((ref) {
+  final useApi = ref.watch(useApiBackendProvider);
+  if (!useApi) return ref.watch(currentUserProvider);
+  return ref.watch(meProvider).valueOrNull ?? ref.read(currentUserProvider);
 });
 
 final rentBoardProvider = FutureProvider<List<RentItem>>((ref) async {
@@ -32,9 +61,38 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
   return ref.watch(reposProvider).listApprovals();
 });
 
+final notificationsProvider = FutureProvider.family<List<AppNotification>, bool>((ref, unreadOnly) async {
+  return ref.watch(reposProvider).notificationsRepo.list(unreadOnly: unreadOnly);
+});
+
+final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
+  return ref.watch(reposProvider).notificationsRepo.unreadCount();
+});
+
+class NotificationsController {
+  NotificationsController(this._ref);
+
+  final Ref _ref;
+
+  Future<void> markRead(String id) async {
+    await _ref.read(reposProvider).notificationsRepo.markRead(id);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+
+  Future<void> markAllRead() async {
+    await _ref.read(reposProvider).notificationsRepo.markAllRead();
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+}
+
+final notificationsControllerProvider = Provider<NotificationsController>((ref) {
+  return NotificationsController(ref);
+});
+
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
   return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
