@@ -3,9 +3,12 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import 'household_repo.dart';
+import 'mock_household_repo.dart';
 
 class MockRepos {
   final _rng = Random(7);
+  late final HouseholdRepo householdRepo = MockHouseholdRepo();
 
   Future<List<RentItem>> listRentBoard() async {
     await Future.delayed(const Duration(milliseconds: 350));
