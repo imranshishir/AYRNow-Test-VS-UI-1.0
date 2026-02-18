@@ -1,7 +1,7 @@
 name: ayrnow
 description: AYRNOW Phase-2 MVP Scaffold (ALL screens + real UI for core flows)
 publish_to: 'none'
-version: 0.2.0+2
+version: 1.0.1+1
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
