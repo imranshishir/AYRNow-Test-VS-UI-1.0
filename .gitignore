@@ -25,3 +25,13 @@ android/key.properties
 
 # macOS
 .DS_Store
+
+# Backend (Maven, logs, env)
+backend/target/
+*.log
+.env
+.env.*
+
+# Local config overrides (do not commit secrets)
+application-*-override.yml
+application-*-local-secrets.yml

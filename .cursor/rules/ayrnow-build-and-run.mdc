@@ -12,6 +12,6 @@ After making code changes and running a build for this project:
 
 Use either:
 - `./scripts/run_simulator.sh` (from project root), which builds for simulator then runs, or
-- `flutter build ios --simulator --no-codesign` then `flutter run -d ios`
+- `flutter build ios --simulator --no-codesign` then `flutter run -d "iPhone 17 Pro"`
 
-Prefer running the full script so the user sees the app launch on the simulator after each build.
+Device: iPhone 17 Pro. Always use this simulator.

@@ -4,6 +4,8 @@ import 'package:ayrnow/core/models/user_role.dart';
 import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
 import 'package:ayrnow/core/backend/providers/backend_providers.dart';
+import 'package:ayrnow/core/api/providers/auth_controller_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 import 'package:ayrnow/features/community/screens/community_transfer_inbox_screen.dart';
 import 'package:ayrnow/features/tenant/profile_portability/tenant_portable_profile_screen.dart';
 import 'package:ayrnow/features/account_management/screens/managed_users_screen.dart';
@@ -181,8 +183,11 @@ class TenantProfileScreen extends ConsumerWidget {
             );
             if (confirm == true && context.mounted) {
               final useFirebase = ref.read(useFirebaseBackendProvider);
+              final useRealApi = ref.read(featureFlagsProvider).auth;
               if (useFirebase) {
                 await ref.read(firebaseAuthServiceProvider).logout();
+              } else if (useRealApi) {
+                await ref.read(authControllerProvider.notifier).logout();
               } else {
                 await MockAuthService.logout();
               }

@@ -18,6 +18,8 @@ class FirebaseSessionBootstrap extends ConsumerStatefulWidget {
 }
 
 class _FirebaseSessionBootstrapState extends ConsumerState<FirebaseSessionBootstrap> {
+  bool _started = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,12 +27,24 @@ class _FirebaseSessionBootstrapState extends ConsumerState<FirebaseSessionBootst
   }
 
   void _maybeStart() {
-    ref.read(appSessionServiceProvider).start();
+    if (!mounted) return;
+    final useFirebase = ref.read(useFirebaseBackendProvider);
+    if (!useFirebase) return;
+    try {
+      ref.read(appSessionServiceProvider).start();
+      _started = true;
+    } catch (_) {
+      // Firebase not configured; ignore
+    }
   }
 
   @override
   void dispose() {
-    ref.read(appSessionServiceProvider).dispose();
+    if (_started) {
+      try {
+        ref.read(appSessionServiceProvider).dispose();
+      } catch (_) {}
+    }
     super.dispose();
   }
 

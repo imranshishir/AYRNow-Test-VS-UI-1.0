@@ -1,33 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'll_property_detail_screen.dart';
 import 'll_add_property_screen.dart';
 import 'package:ayrnow/ui/shared/switch_role_menu.dart';
+import 'package:ayrnow/core/api/providers/properties_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
+import 'package:ayrnow/ui/shared/widgets/loading_indicator.dart';
+import 'package:ayrnow/ui/shared/widgets/empty_state_widget.dart';
 
-class LlPropertiesListScreen extends StatelessWidget {
+class LlPropertiesListScreen extends ConsumerWidget {
   const LlPropertiesListScreen({super.key});
 
+  static List<_Property> _mockProperties = const [
+    _Property(id: 'P-1001', name: 'Harlem Heights', type: 'Residential', city: 'Buffalo, NY', units: 12),
+    _Property(id: 'P-2001', name: 'Elmwood Plaza', type: 'Commercial', city: 'Buffalo, NY', units: 24),
+    _Property(id: 'P-3001', name: 'Lakeview Villas', type: 'Residential', city: 'Rochester, NY', units: 18),
+  ];
+
   @override
-  Widget build(BuildContext context) {
-    final properties = const [
-      _Property(
-          id: 'P-1001',
-          name: 'Harlem Heights',
-          type: 'Residential',
-          city: 'Buffalo, NY',
-          units: 12),
-      _Property(
-          id: 'P-2001',
-          name: 'Elmwood Plaza',
-          type: 'Commercial',
-          city: 'Buffalo, NY',
-          units: 24),
-      _Property(
-          id: 'P-3001',
-          name: 'Lakeview Villas',
-          type: 'Residential',
-          city: 'Rochester, NY',
-          units: 18),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useRealApi = ref.watch(featureFlagsProvider).properties;
+    final asyncProperties = ref.watch(propertiesListProvider);
+
+    final properties = useRealApi
+        ? asyncProperties.when(
+            data: (list) => list
+                .map((p) {
+                  final city = [p.city, p.state].whereType<String>().where((s) => s.isNotEmpty).join(', ');
+                  return _Property(
+                    id: p.id,
+                    name: p.name,
+                    type: 'Residential',
+                    city: city.isEmpty ? '—' : city,
+                    units: 0,
+                  );
+                })
+                .toList(),
+            loading: () => null,
+            error: (_, __) => null,
+          )
+        : null;
+
+    final displayList = properties ?? _mockProperties;
+    final isLoading = useRealApi && asyncProperties.isLoading;
+    final hasError = useRealApi && asyncProperties.hasError;
 
     return Scaffold(
       appBar: AppBar(
@@ -42,21 +58,30 @@ class LlPropertiesListScreen extends StatelessWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add property'),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        itemCount: properties.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (context, i) {
-          final p = properties[i];
-          return _PropertyCard(
-            p: p,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (_) => LlPropertyDetailScreen(property: p)),
-            ),
-          );
-        },
-      ),
+      body: isLoading
+          ? const Center(child: LoadingIndicator())
+          : hasError
+              ? EmptyStateWidget(
+                  title: 'Could not load properties',
+                  subtitle: 'Check your connection and try again.',
+                  icon: Icons.cloud_off_outlined,
+                  onRetry: () => ref.invalidate(propertiesListProvider),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                  itemCount: displayList.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, i) {
+                    final p = displayList[i];
+                    return _PropertyCard(
+                      p: p,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => LlPropertyDetailScreen(property: p)),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

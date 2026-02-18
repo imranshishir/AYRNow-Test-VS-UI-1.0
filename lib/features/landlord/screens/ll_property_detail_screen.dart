@@ -1,38 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/features/landlord/unit/unit_tabs_screen.dart';
 import 'package:ayrnow/ui/shared/switch_role_menu.dart';
+import 'package:ayrnow/core/api/providers/units_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
+import 'package:ayrnow/core/api/providers/api_client_provider.dart';
+import 'package:ayrnow/core/api/endpoints/units_api.dart';
 
-class LlPropertyDetailScreen extends StatelessWidget {
+class LlPropertyDetailScreen extends ConsumerWidget {
   final dynamic property; // _Property from list screen (kept simple demo)
   const LlPropertyDetailScreen({super.key, required this.property});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useRealApi = ref.watch(featureFlagsProvider).units;
+    final asyncUnits = ref.watch(unitsListProvider(property.id));
     final isCommercial = property.type == 'Commercial';
-    final units = List.generate(property.units, (i) {
-      final num = (i + 1).toString().padLeft(2, '0');
-      return _Unit(
-        id: isCommercial ? 'S-$num' : 'A-$num',
-        label: isCommercial ? 'Store $num' : 'Apt $num',
-        status: i % 5 == 0 ? 'Vacant' : 'Occupied',
-        tenantCount: i % 5 == 0 ? 0 : 1,
-        balance: i % 4 == 0 ? 120.50 : 0.0,
-      );
-    });
+
+    final units = useRealApi
+        ? asyncUnits.when(
+            data: (list) => list
+                .map((u) => _Unit(
+                      id: u.id,
+                      label: u.unitLabel,
+                      status: u.status == 'vacant' ? 'Vacant' : 'Occupied',
+                      tenantCount: u.status == 'occupied' ? 1 : 0,
+                      balance: 0.0,
+                    ))
+                .toList(),
+            loading: () => <_Unit>[],
+            error: (_, __) => <_Unit>[],
+          )
+        : List.generate(property.units, (i) {
+            final num = (i + 1).toString().padLeft(2, '0');
+            return _Unit(
+              id: isCommercial ? 'S-$num' : 'A-$num',
+              label: isCommercial ? 'Store $num' : 'Apt $num',
+              status: i % 5 == 0 ? 'Vacant' : 'Occupied',
+              tenantCount: i % 5 == 0 ? 0 : 1,
+              balance: i % 4 == 0 ? 120.50 : 0.0,
+            );
+          });
+
+    final unitCount = useRealApi
+        ? asyncUnits.when(
+            data: (list) => list.length,
+            loading: () => 0,
+            error: (_, __) => 0,
+          )
+        : property.units;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(property.name),
         actions: const [SwitchRoleMenu()],
       ),
-      body: ListView(
+      floatingActionButton: useRealApi
+          ? FloatingActionButton.extended(
+              onPressed: () => _showAddUnitDialogWithProperty(context, ref, property.id),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Unit'),
+            )
+          : null,
+      body: asyncUnits.isLoading && useRealApi
+          ? const Center(child: CircularProgressIndicator())
+          : asyncUnits.hasError && useRealApi
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Could not load units',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => ref.invalidate(unitsListProvider(property.id)),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           _HeaderCard(
             title: property.name,
             subtitle: '${property.type} • ${property.city}',
             meta1: property.id,
-            meta2: '${property.units} units',
+            meta2: '$unitCount units',
             icon: isCommercial ? Icons.storefront : Icons.apartment,
           ),
           const SizedBox(height: 14),
@@ -52,6 +112,51 @@ class LlPropertyDetailScreen extends StatelessWidget {
               )),
         ],
       ),
+    );
+  }
+
+}
+
+Future<void> _showAddUnitDialogWithProperty(BuildContext context, WidgetRef ref, String propertyId) async {
+  final ctrl = TextEditingController();
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Add Unit'),
+      content: TextField(
+        controller: ctrl,
+        decoration: const InputDecoration(
+          hintText: 'e.g., 101',
+          labelText: 'Unit label',
+        ),
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Add'),
+        ),
+      ],
+    ),
+  );
+  final label = ctrl.text.trim();
+  ctrl.dispose();
+  if (result != true || label.isEmpty || !context.mounted) return;
+  try {
+    final dio = ref.read(apiClientProvider);
+    final api = UnitsApi(dio);
+    await api.create(propertyId, unitLabel: label);
+    if (!context.mounted) return;
+    ref.invalidate(unitsListProvider(propertyId));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unit created')));
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to create unit')),
     );
   }
 }

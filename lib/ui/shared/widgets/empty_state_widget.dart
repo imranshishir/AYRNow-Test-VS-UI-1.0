@@ -6,6 +6,7 @@ class EmptyStateWidget extends StatelessWidget {
   final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final VoidCallback? onRetry;
 
   const EmptyStateWidget({
     super.key,
@@ -14,6 +15,7 @@ class EmptyStateWidget extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
+    this.onRetry,
   });
 
   @override
@@ -40,7 +42,14 @@ class EmptyStateWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-            if (actionLabel != null && onAction != null) ...[
+            if (onRetry != null) ...[
+              const SizedBox(height: 20),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 20),
+                label: const Text('Retry'),
+              ),
+            ] else if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: onAction,

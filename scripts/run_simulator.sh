@@ -10,5 +10,5 @@ echo "Building for iOS Simulator..."
 flutter build ios --simulator --no-codesign
 
 echo "Running on iOS Simulator..."
-# -d ios often doesn't match; use device name or id from `flutter devices`
-flutter run -d "iPhone 16 Pro"
+# Always use iPhone 17 Pro
+flutter run -d "iPhone 17 Pro"

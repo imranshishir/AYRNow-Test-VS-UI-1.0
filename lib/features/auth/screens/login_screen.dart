@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/state/role_provider.dart';
@@ -6,6 +7,8 @@ import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
 import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
 import 'package:ayrnow/features/auth/screens/register_screen.dart';
 import 'package:ayrnow/core/backend/providers/backend_providers.dart';
+import 'package:ayrnow/core/api/providers/auth_controller_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -45,19 +48,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final useFirebase = ref.read(useFirebaseBackendProvider);
+      final useRealApi = ref.read(featureFlagsProvider).auth;
+
       if (useFirebase) {
         final authService = ref.read(firebaseAuthServiceProvider);
         await authService.login(email, password);
         if (!mounted) return;
         ref.read(isLoggedInProvider.notifier).state = true;
         ref.read(hasChosenRoleProvider.notifier).state = true;
+      } else if (useRealApi) {
+        final success = await ref.read(authControllerProvider.notifier).login(email, password);
+        if (!mounted) return;
+        if (success) {
+          ref.read(hasChosenRoleProvider.notifier).state = true;
+        } else {
+          if (mounted) setState(() {
+            _loading = false;
+            _errorMessage = 'Invalid email or password. Try again.';
+          });
+        }
       } else {
         final success = await MockAuthService.login(email, password);
         if (!mounted) return;
         if (success) {
           ref.read(isLoggedInProvider.notifier).state = true;
+          ref.read(hasChosenRoleProvider.notifier).state = true;
         } else {
-          setState(() {
+          if (mounted) setState(() {
             _loading = false;
             _errorMessage = 'Invalid email or password. Try again.';
           });
@@ -159,6 +176,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   icon: Icons.login,
                 ),
                 const SizedBox(height: 24),
+                if (kDebugMode)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Center(
+                      child: TextButton(
+                        onPressed: _loading
+                            ? null
+                            : () {
+                                _emailController.text = 'test@test.com';
+                                _passwordController.text = 'test123';
+                                _submit();
+                              },
+                        child: Text(
+                          'Use test account',
+                          style: t.textTheme.bodySmall,
+                        ),
+                      ),
+                    ),
+                  ),
                 Center(
                   child: TextButton(
                     onPressed: () {

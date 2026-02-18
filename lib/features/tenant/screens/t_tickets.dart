@@ -46,7 +46,7 @@ class _TenantTicketsScreenState extends State<TenantTicketsScreen> {
                 final created = await Navigator.of(context).push<TenantTicket>(
                   MaterialPageRoute(builder: (_) => const TenantCreateTicketScreen()),
                 );
-                if (!mounted) return;
+                if (!context.mounted) return;
                 if (created != null) {
                   setState(() => _tickets.insert(0, created));
                   Navigator.of(context).push(
@@ -73,7 +73,7 @@ class _TenantTicketsScreenState extends State<TenantTicketsScreen> {
                 MaterialPageRoute(
                     builder: (_) => const TenantCreateTicketScreen()),
               );
-              if (!mounted) return;
+              if (!context.mounted) return;
               if (created != null) {
                 setState(() => _tickets.insert(0, created));
                 Navigator.of(context).push(

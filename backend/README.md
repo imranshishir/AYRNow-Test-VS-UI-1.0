@@ -8,6 +8,7 @@ Spring Boot 3.x monolithic API for AYRNOW. REST JSON, versioned under `/api/v1`.
 |-----|-------------|
 | [documentation/backend/README.md](../documentation/backend/README.md) | Documentation index, what is AYRNOW backend, quick start |
 | [documentation/backend/HANDOFF.md](../documentation/backend/HANDOFF.md) | Developer handoff: architecture, domain model, conventions, how to add features |
+| [documentation/backend/ARCHITECTURE_DIAGRAM.md](../documentation/backend/ARCHITECTURE_DIAGRAM.md) | ASCII diagrams: system, domain, auth, Stripe webhook, ledger |
 | [documentation/backend/RUN_LOCAL.md](../documentation/backend/RUN_LOCAL.md) | Run locally: prereqs, DB setup, Flyway, common issues, auth modes |
 | [documentation/backend/API_TESTING.md](../documentation/backend/API_TESTING.md) | Full API reference with curl examples for every endpoint |
 | [documentation/backend/DEPLOY.md](../documentation/backend/DEPLOY.md) | Staging/prod deployment, AWS EC2+RDS, systemd, HTTPS, Stripe webhooks |
@@ -108,6 +109,8 @@ curl -s -X POST \
      http://localhost:8080/api/v1/auth/login
 # Returns same token response
 ```
+
+**Test login:** `test@test.com` / `test123`. Use for JWT login in Flutter or curl.
 
 #### List properties with Bearer token
 ```bash
