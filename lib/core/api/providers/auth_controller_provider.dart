@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/core/models/user_role.dart';
 import 'package:ayrnow/core/api/auth_token_store.dart';
 import 'package:ayrnow/core/api/endpoints/auth_api.dart';
+import 'package:ayrnow/core/api/endpoints/leases_api.dart';
+import 'package:ayrnow/core/api/endpoints/units_api.dart';
 import 'package:ayrnow/core/api/providers/api_client_provider.dart';
+import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
+import 'package:ayrnow/core/session/tenant_context.dart';
 import 'package:ayrnow/state/role_provider.dart';
 
 /// Maps backend role string to Flutter UserRole
@@ -66,9 +70,13 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         role: res.role,
       );
       _ref.read(isLoggedInProvider.notifier).state = true;
-      _ref.read(currentRoleProvider.notifier).state = roleFromBackend(res.role);
+      final userRole = roleFromBackend(res.role);
+      _ref.read(currentRoleProvider.notifier).state = userRole;
       _ref.read(hasChosenRoleProvider.notifier).state = true;
       state = const AsyncValue.data(null);
+      if (userRole == UserRole.tenant && _ref.read(featureFlagsProvider).leases) {
+        _updateTenantContextFromLease();
+      }
       return true;
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -101,14 +109,33 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         role: res.role,
       );
       _ref.read(isLoggedInProvider.notifier).state = true;
-      _ref.read(currentRoleProvider.notifier).state = roleFromBackend(res.role);
+      final userRole = roleFromBackend(res.role);
+      _ref.read(currentRoleProvider.notifier).state = userRole;
       _ref.read(hasChosenRoleProvider.notifier).state = true;
       state = const AsyncValue.data(null);
+      if (userRole == UserRole.tenant && _ref.read(featureFlagsProvider).leases) {
+        _updateTenantContextFromLease();
+      }
       return true;
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
       return false;
     }
+  }
+
+  Future<void> _updateTenantContextFromLease() async {
+    try {
+      final lease = await LeasesApi(_dio).getActiveOrNull();
+      if (lease == null) return;
+      final unit = await UnitsApi(_dio).getById(lease.unitId);
+      _ref.read(tenantContextProvider.notifier).setContext(
+            TenantContext(
+              tenantAccountId: lease.accountId,
+              selectedPropertyId: unit.propertyId,
+              selectedUnitId: unit.id,
+            ),
+          );
+    } catch (_) {}
   }
 
   Future<void> logout() async {

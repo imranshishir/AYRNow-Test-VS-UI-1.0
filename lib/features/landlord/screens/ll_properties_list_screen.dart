@@ -45,6 +45,8 @@ class LlPropertiesListScreen extends ConsumerWidget {
     final isLoading = useRealApi && asyncProperties.isLoading;
     final hasError = useRealApi && asyncProperties.hasError;
 
+    final isEmpty = displayList.isEmpty && !isLoading && !hasError;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Properties'),
@@ -67,6 +69,13 @@ class LlPropertiesListScreen extends ConsumerWidget {
                   icon: Icons.cloud_off_outlined,
                   onRetry: () => ref.invalidate(propertiesListProvider),
                 )
+              : isEmpty
+                  ? EmptyStateWidget(
+                      title: 'No properties yet',
+                      subtitle: 'Add your first property to get started.',
+                      icon: Icons.apartment_outlined,
+                      onRetry: () => ref.invalidate(propertiesListProvider),
+                    )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                   itemCount: displayList.length,
