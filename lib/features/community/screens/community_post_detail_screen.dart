@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/state/providers.dart';
+import '../../notifications/models/notification_models.dart';
 import '../models/community_models.dart';
 
 class CommunityPostDetailScreen extends ConsumerStatefulWidget {
@@ -95,6 +96,15 @@ class _CommunityPostDetailScreenState extends ConsumerState<CommunityPostDetailS
     if (body.isEmpty) return;
 
     await ref.read(reposProvider).communityRepo.addComment(widget.post.id, body);
+    ref.read(notificationsControllerProvider).add(AppNotification(
+      id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+      type: NotificationType.comment,
+      title: 'New comment',
+      body: 'Comment added on: ${widget.post.title}',
+      createdAt: DateTime.now(),
+      route: '/community',
+      targetRole: NotificationTargetRole.any,
+    ));
     ref.invalidate(communityCommentsProvider(widget.post.id));
     ref.invalidate(communityPostsProvider((role: ref.read(currentUserProvider).role.name, scopeFilter: null)));
     _commentController.clear();

@@ -71,7 +71,6 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
   return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
@@ -111,6 +110,15 @@ class TransferRequestController {
   }) async {
     final repo = _ref.read(reposProvider).tenantTransferRepo;
     final req = await repo.createTransferRequest(targetEmailOrCode: targetEmailOrCode, note: note);
+    _ref.read(notificationsControllerProvider).add(AppNotification(
+      id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+      type: NotificationType.transferRequest,
+      title: 'New transfer request',
+      body: '${req.tenantName} requested a transfer',
+      createdAt: DateTime.now(),
+      route: '/L-45',
+      targetRole: NotificationTargetRole.landlord,
+    ));
     _ref.invalidate(myTransferRequestProvider);
     _ref.invalidate(landlordTransferInboxProvider);
     return req;
@@ -127,6 +135,18 @@ class TransferRequestController {
       accept: accept,
       landlordMessage: landlordMessage,
     );
+    final body = landlordMessage != null && landlordMessage.isNotEmpty
+        ? (landlordMessage.length > 80 ? '${landlordMessage.substring(0, 80)}...' : landlordMessage)
+        : '';
+    _ref.read(notificationsControllerProvider).add(AppNotification(
+      id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+      type: NotificationType.transferDecision,
+      title: accept ? 'Transfer accepted' : 'Transfer rejected',
+      body: body,
+      createdAt: DateTime.now(),
+      route: '/T-45',
+      targetRole: NotificationTargetRole.tenant,
+    ));
     _ref.invalidate(myTransferRequestProvider);
     _ref.invalidate(landlordTransferInboxProvider);
     return req;
