@@ -17,6 +17,7 @@ import '../features/household/screens/tenant_household_screen.dart';
 import '../features/household/screens/invite_household_member_screen.dart';
 import '../features/household/screens/landlord_unit_residents_screen.dart';
 import '../features/landlord/screens/unit_detail_screen.dart';
+import '../features/notifications/screens/notifications_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   final routes = <String, WidgetBuilder>{};
@@ -37,6 +38,7 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/L-50'] = (_) => const LandlordUnitResidentsScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
+  routes['/I-10'] = (_) => const NotificationsScreen();
 
   routes['/community'] = (_) => const CommunityHomeScreen(isLandlord: false);
   routes['/L-40'] = (_) => const CommunityHomeScreen(isLandlord: true);

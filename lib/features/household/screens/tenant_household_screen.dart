@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
+import '../../notifications/models/notification_models.dart';
 import '../models/household_models.dart';
 const _demoUnitId = 'unit-1';
 
@@ -78,6 +79,15 @@ class TenantHouseholdScreen extends ConsumerWidget {
     if (ok == true && context.mounted) {
       await ref.read(householdControllerProvider).deactivateMember(m.id);
       if (context.mounted) {
+        ref.read(notificationsControllerProvider).add(AppNotification(
+          id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+          type: NotificationType.householdDeactivated,
+          title: 'Household member deactivated',
+          body: '${m.name} is now inactive',
+          createdAt: DateTime.now(),
+          route: '/T-50',
+          targetRole: NotificationTargetRole.tenant,
+        ));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${m.name} has been deactivated.')),
         );

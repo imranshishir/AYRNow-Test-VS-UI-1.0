@@ -39,10 +39,24 @@ class _AppShellState extends ConsumerState<AppShell> {
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/I-10'),
-            icon: const Icon(Icons.notifications_none_outlined),
-            tooltip: 'Notifications',
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadAsync = ref.watch(notificationsUnreadCountProvider);
+              return IconButton(
+                onPressed: () => Navigator.pushNamed(context, '/I-10'),
+                icon: unreadAsync.when(
+                  data: (count) => count > 0
+                      ? Badge(
+                          label: Text('$count'),
+                          child: const Icon(Icons.notifications_none_outlined),
+                        )
+                      : const Icon(Icons.notifications_none_outlined),
+                  loading: () => const Icon(Icons.notifications_none_outlined),
+                  error: (_, __) => const Icon(Icons.notifications_none_outlined),
+                ),
+                tooltip: 'Notifications',
+              );
+            },
           ),
         ],
       ),

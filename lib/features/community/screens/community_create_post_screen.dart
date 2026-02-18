@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/state/providers.dart';
+import '../../notifications/models/notification_models.dart';
 import '../models/community_models.dart';
 
 /// Create post flow (landlord only). Fields: Audience, Scope, Title, Body, Priority.
@@ -66,6 +67,15 @@ class _CommunityCreatePostScreenState extends ConsumerState<CommunityCreatePostS
 
     await ref.read(reposProvider).communityRepo.createPost(post);
     if (mounted) {
+      ref.read(notificationsControllerProvider).add(AppNotification(
+        id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+        type: NotificationType.announcement,
+        title: 'New announcement',
+        body: post.title,
+        createdAt: DateTime.now(),
+        route: '/community',
+        targetRole: NotificationTargetRole.tenant,
+      ));
       widget.onCreated();
       Navigator.of(context).pop();
     }

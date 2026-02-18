@@ -9,6 +9,8 @@ import 'tenant_transfer_repo.dart';
 import 'mock_tenant_transfer_repo.dart';
 import 'household_repo.dart';
 import 'mock_household_repo.dart';
+import 'notifications_repo.dart';
+import 'mock_notifications_repo.dart';
 
 class MockRepos {
   final _rng = Random(7);
@@ -17,6 +19,7 @@ class MockRepos {
   late final HouseholdRepo householdRepo = MockHouseholdRepo();
 
   CommunityRepo get communityRepo => _communityRepo;
+  late final NotificationsRepo notificationsRepo = MockNotificationsRepo();
 
   Future<List<RentItem>> listRentBoard() async {
     await Future.delayed(const Duration(milliseconds: 350));

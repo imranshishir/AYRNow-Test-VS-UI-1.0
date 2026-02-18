@@ -5,9 +5,7 @@ import 'package:ayrnow/main.dart';
 
 void main() {
   testWidgets('App loads smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: AyrnowApp()),
-    );
+    await tester.pumpWidget(const ProviderScope(child: AyrnowApp()));
     await tester.pumpAndSettle();
     expect(find.byType(MaterialApp), findsOneWidget);
   });

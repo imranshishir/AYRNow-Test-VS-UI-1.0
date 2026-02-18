@@ -6,11 +6,48 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import '../../features/notifications/models/notification_models.dart';
 import '../../features/community/models/community_models.dart';
 import '../../features/tenant_transfer/models/tenant_transfer_models.dart';
 import '../../features/household/models/household_models.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
+
+final notificationsProvider = FutureProvider.family<List<AppNotification>, bool>((ref, unreadOnly) async {
+  return ref.watch(reposProvider).notificationsRepo.list(unreadOnly: unreadOnly);
+});
+
+final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
+  return ref.watch(reposProvider).notificationsRepo.unreadCount();
+});
+
+class NotificationsController {
+  NotificationsController(this._ref);
+
+  final Ref _ref;
+
+  Future<void> markRead(String id) async {
+    await _ref.read(reposProvider).notificationsRepo.markRead(id);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+
+  Future<void> markAllRead() async {
+    await _ref.read(reposProvider).notificationsRepo.markAllRead();
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+
+  Future<void> add(AppNotification n) async {
+    await _ref.read(reposProvider).notificationsRepo.add(n);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+}
+
+final notificationsControllerProvider = Provider<NotificationsController>((ref) {
+  return NotificationsController(ref);
+});
 
 final currentUserProvider = StateProvider<AppUser>((ref) {
   return const AppUser(id: 'u1', name: 'Demo User', role: UserRole.landlord);
@@ -34,7 +71,6 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
   return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
@@ -74,6 +110,15 @@ class TransferRequestController {
   }) async {
     final repo = _ref.read(reposProvider).tenantTransferRepo;
     final req = await repo.createTransferRequest(targetEmailOrCode: targetEmailOrCode, note: note);
+    _ref.read(notificationsControllerProvider).add(AppNotification(
+      id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+      type: NotificationType.transferRequest,
+      title: 'New transfer request',
+      body: '${req.tenantName} requested a transfer',
+      createdAt: DateTime.now(),
+      route: '/L-45',
+      targetRole: NotificationTargetRole.landlord,
+    ));
     _ref.invalidate(myTransferRequestProvider);
     _ref.invalidate(landlordTransferInboxProvider);
     return req;
@@ -90,6 +135,18 @@ class TransferRequestController {
       accept: accept,
       landlordMessage: landlordMessage,
     );
+    final body = landlordMessage != null && landlordMessage.isNotEmpty
+        ? (landlordMessage.length > 80 ? '${landlordMessage.substring(0, 80)}...' : landlordMessage)
+        : '';
+    _ref.read(notificationsControllerProvider).add(AppNotification(
+      id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+      type: NotificationType.transferDecision,
+      title: accept ? 'Transfer accepted' : 'Transfer rejected',
+      body: body,
+      createdAt: DateTime.now(),
+      route: '/T-45',
+      targetRole: NotificationTargetRole.tenant,
+    ));
     _ref.invalidate(myTransferRequestProvider);
     _ref.invalidate(landlordTransferInboxProvider);
     return req;

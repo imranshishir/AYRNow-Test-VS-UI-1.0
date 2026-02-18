@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
+import '../../notifications/models/notification_models.dart';
 import '../models/household_models.dart';
 
 const _demoUnitId = 'unit-1';
@@ -69,6 +70,15 @@ class _InviteHouseholdMemberScreenState extends ConsumerState<InviteHouseholdMem
           );
       if (!mounted) return;
       final code = _generateInviteCode();
+      ref.read(notificationsControllerProvider).add(AppNotification(
+        id: 'n-${DateTime.now().millisecondsSinceEpoch}',
+        type: NotificationType.householdInvite,
+        title: 'Household invite created',
+        body: 'Invite code: $code',
+        createdAt: DateTime.now(),
+        route: '/T-50',
+        targetRole: NotificationTargetRole.tenant,
+      ));
       await _showInviteCodeSheet(context, code);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
