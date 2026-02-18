@@ -21,7 +21,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(sessionUserProvider);
     final tabTitle = _tabTitle(index);
 
     return Scaffold(
