@@ -59,6 +59,15 @@ class TenantDashboardScreen extends ConsumerWidget {
               onTap: () => Navigator.pushNamed(context, '/T-45'),
             ),
           ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.people_outlined),
+              title: const Text('Household'),
+              subtitle: const Text('Manage co-tenants and family members'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/T-50'),
+            ),
+          ),
         ],
       ),
     );

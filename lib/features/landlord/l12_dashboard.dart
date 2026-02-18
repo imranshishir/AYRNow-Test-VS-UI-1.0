@@ -58,6 +58,15 @@ class LandlordDashboardScreen extends ConsumerWidget {
               onTap: () => Navigator.pushNamed(context, '/L-45'),
             ),
           ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.people_outlined),
+              title: const Text('Residents & Family'),
+              subtitle: const Text('View residents and invite members for a unit'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/L-50'),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

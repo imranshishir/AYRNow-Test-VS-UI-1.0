@@ -13,6 +13,10 @@ import '../features/community/screens/community_create_post_screen.dart';
 import '../features/tenant_transfer/screens/tenant_profile_export_screen.dart';
 import '../features/tenant_transfer/screens/tenant_transfer_request_screen.dart';
 import '../features/tenant_transfer/screens/landlord_transfer_inbox_screen.dart';
+import '../features/household/screens/tenant_household_screen.dart';
+import '../features/household/screens/invite_household_member_screen.dart';
+import '../features/household/screens/landlord_unit_residents_screen.dart';
+import '../features/landlord/screens/unit_detail_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   final routes = <String, WidgetBuilder>{};
@@ -22,11 +26,15 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/L-12'] = (_) => const LandlordDashboardScreen();
   routes['/L-23'] = (_) => const RentBoardScreen();
   routes['/L-30'] = (_) => const MaintenanceInboxScreen();
+  routes['/L-24'] = (_) => const UnitDetailScreen();
   routes['/T-06'] = (_) => const TenantDashboardScreen();
   routes['/T-10'] = (_) => const PayRentScreen();
   routes['/T-45'] = (_) => const TenantProfileExportScreen();
   routes['/T-45/request'] = (_) => const TenantTransferRequestScreen();
   routes['/L-45'] = (_) => const LandlordTransferInboxScreen();
+  routes['/T-50'] = (_) => const TenantHouseholdScreen();
+  routes['/T-50/invite'] = (_) => const InviteHouseholdMemberScreen();
+  routes['/L-50'] = (_) => const LandlordUnitResidentsScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
 
@@ -67,6 +75,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     'L-28',
     'L-30',
     'L-45',
+    'L-50',
     'L-31',
     'L-31R',
     'L-32',
@@ -87,6 +96,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     'T-07',
     'T-07E',
     'T-10',
+    'T-50',
     'T-11',
     'T-12',
     'T-13',

@@ -7,11 +7,14 @@ import 'community_repo.dart';
 import 'mock_community_repo.dart';
 import 'tenant_transfer_repo.dart';
 import 'mock_tenant_transfer_repo.dart';
+import 'household_repo.dart';
+import 'mock_household_repo.dart';
 
 class MockRepos {
   final _rng = Random(7);
   final CommunityRepo _communityRepo = MockCommunityRepo();
   late final TenantTransferRepo tenantTransferRepo = MockTenantTransferRepo();
+  late final HouseholdRepo householdRepo = MockHouseholdRepo();
 
   CommunityRepo get communityRepo => _communityRepo;
 
