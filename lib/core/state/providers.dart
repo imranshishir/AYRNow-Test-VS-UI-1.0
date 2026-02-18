@@ -6,6 +6,7 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import '../../features/community/models/community_models.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
 
@@ -30,3 +31,13 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 });
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
+
+/// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
+final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
+  return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
+});
+
+/// Comments for a post.
+final communityCommentsProvider = FutureProvider.family<List<CommunityComment>, String>((ref, postId) async {
+  return ref.watch(reposProvider).communityRepo.listComments(postId);
+});

@@ -83,9 +83,8 @@ class RoleSelectorScreen extends ConsumerWidget {
       case UserRole.tenant:
         return Icons.person_outline;
       case UserRole.landlord:
-        case UserRole.investor:
-        case UserRole.admin:
       case UserRole.investor:
+      case UserRole.admin:
         return Icons.home_outlined;
       case UserRole.contractor:
         return Icons.handyman_outlined;

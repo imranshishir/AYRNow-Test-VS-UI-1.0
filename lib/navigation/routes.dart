@@ -8,6 +8,8 @@ import '../features/tenant/t06_dashboard.dart';
 import '../features/tenant/t10_pay_rent.dart';
 import '../features/contractor/c10_jobs_feed.dart';
 import '../features/guard/s10_approvals_queue.dart';
+import '../features/community/screens/community_home_screen.dart';
+import '../features/community/screens/community_create_post_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   final routes = <String, WidgetBuilder>{};
@@ -21,6 +23,16 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/T-10'] = (_) => const PayRentScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
+
+  routes['/community'] = (_) => const CommunityHomeScreen(isLandlord: false);
+  routes['/L-40'] = (_) => const CommunityHomeScreen(isLandlord: true);
+  routes['/T-40'] = (_) => const CommunityHomeScreen(isLandlord: false);
+  routes['/community/new'] = (_) => CommunityCreatePostScreen(
+        isLandlord: true,
+        authorName: 'Demo Landlord',
+        authorRole: 'landlord',
+        onCreated: () {},
+      );
 
   const ids = <String>[
     'L-01',

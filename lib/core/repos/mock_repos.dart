@@ -3,9 +3,14 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import 'community_repo.dart';
+import 'mock_community_repo.dart';
 
 class MockRepos {
   final _rng = Random(7);
+  final CommunityRepo _communityRepo = MockCommunityRepo();
+
+  CommunityRepo get communityRepo => _communityRepo;
 
   Future<List<RentItem>> listRentBoard() async {
     await Future.delayed(const Duration(milliseconds: 350));
