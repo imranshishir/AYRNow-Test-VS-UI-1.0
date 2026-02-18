@@ -8,6 +8,7 @@ import '../features/tenant/t06_dashboard.dart';
 import '../features/tenant/t10_pay_rent.dart';
 import '../features/contractor/c10_jobs_feed.dart';
 import '../features/guard/s10_approvals_queue.dart';
+import '../features/notifications/screens/notifications_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   final routes = <String, WidgetBuilder>{};
@@ -21,6 +22,7 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/T-10'] = (_) => const PayRentScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
+  routes['/I-10'] = (_) => const NotificationsScreen();
 
   const ids = <String>[
     'L-01',

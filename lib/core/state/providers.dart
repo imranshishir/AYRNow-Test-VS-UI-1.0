@@ -6,8 +6,45 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import '../../features/notifications/models/notification_models.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
+
+final notificationsProvider = FutureProvider.family<List<AppNotification>, bool>((ref, unreadOnly) async {
+  return ref.watch(reposProvider).notificationsRepo.list(unreadOnly: unreadOnly);
+});
+
+final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
+  return ref.watch(reposProvider).notificationsRepo.unreadCount();
+});
+
+class NotificationsController {
+  NotificationsController(this._ref);
+
+  final Ref _ref;
+
+  Future<void> markRead(String id) async {
+    await _ref.read(reposProvider).notificationsRepo.markRead(id);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+
+  Future<void> markAllRead() async {
+    await _ref.read(reposProvider).notificationsRepo.markAllRead();
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+
+  Future<void> add(AppNotification n) async {
+    await _ref.read(reposProvider).notificationsRepo.add(n);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(notificationsUnreadCountProvider);
+  }
+}
+
+final notificationsControllerProvider = Provider<NotificationsController>((ref) {
+  return NotificationsController(ref);
+});
 
 final currentUserProvider = StateProvider<AppUser>((ref) {
   return const AppUser(id: 'u1', name: 'Demo User', role: UserRole.landlord);

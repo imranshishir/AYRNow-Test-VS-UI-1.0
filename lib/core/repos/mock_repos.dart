@@ -3,8 +3,11 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import 'notifications_repo.dart';
+import 'mock_notifications_repo.dart';
 
 class MockRepos {
+  late final NotificationsRepo notificationsRepo = MockNotificationsRepo();
   final _rng = Random(7);
 
   Future<List<RentItem>> listRentBoard() async {
