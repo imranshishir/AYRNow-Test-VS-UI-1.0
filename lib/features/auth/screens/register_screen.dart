@@ -5,11 +5,9 @@ import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/ui/shared/ayr_logo.dart';
 import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
 import 'package:ayrnow/ui/shared/widgets/confirmation_screen.dart';
-import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
 import 'package:ayrnow/core/backend/providers/backend_providers.dart';
 import 'package:ayrnow/core/backend/services/firebase_auth_service.dart';
 import 'package:ayrnow/core/api/providers/auth_controller_provider.dart';
-import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -55,7 +53,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     try {
       final useFirebase = ref.read(useFirebaseBackendProvider);
-      final useRealApi = ref.read(featureFlagsProvider).auth;
 
       if (useFirebase) {
         final authService = ref.read(firebaseAuthServiceProvider);
@@ -82,7 +79,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           ),
         );
-      } else if (useRealApi) {
+      } else {
+        // Use JWT backend (AuthController)
         final success = await ref.read(authControllerProvider.notifier).register(
           displayName: name,
           email: email,
@@ -92,37 +90,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         );
         if (!mounted) return;
         if (success) {
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => ConfirmationScreen(
-                title: 'Account created successfully',
-                message: 'Welcome to AYRNOW. You can now use the app.',
-                primaryButtonLabel: 'Go to dashboard',
-                onPrimaryPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-              ),
-            ),
-          );
-        } else {
-          if (mounted) setState(() {
-            _loading = false;
-            _errorMessage = 'Registration failed. Try a different email.';
-          });
-        }
-      } else {
-        final success = await MockAuthService.register(
-          name: name,
-          email: email,
-          password: password,
-          role: _selectedRole,
-        );
-        if (!mounted) return;
-        if (success) {
-          ref.read(isLoggedInProvider.notifier).state = true;
-          ref.read(currentRoleProvider.notifier).state = _selectedRole;
-          ref.read(hasChosenRoleProvider.notifier).state = true;
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

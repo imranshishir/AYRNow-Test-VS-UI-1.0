@@ -213,11 +213,11 @@ class _HeaderCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 8),
-              Row(children: [
-                _pill(context, meta1),
-                const SizedBox(width: 8),
-                _pill(context, meta2),
-              ]),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [_pill(context, meta1), _pill(context, meta2)],
+              ),
             ]),
           ),
         ],

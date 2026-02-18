@@ -66,8 +66,23 @@ class FeatureFlags {
     properties: true,
     units: true,
   );
+
+  /// All real API — no mock. Use Spring Boot backend.
+  static const allReal = FeatureFlags(
+    auth: true,
+    properties: true,
+    units: true,
+    leases: true,
+    invites: true,
+    tickets: true,
+    contractors: true,
+    community: true,
+    security: true,
+    ledger: true,
+    tenantProfile: true,
+  );
 }
 
 final featureFlagsProvider = StateProvider<FeatureFlags>((ref) {
-  return FeatureFlags.authAndProperties;
+  return FeatureFlags.allReal;
 });

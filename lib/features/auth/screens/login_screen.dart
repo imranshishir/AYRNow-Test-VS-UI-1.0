@@ -4,11 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ayrnow/state/role_provider.dart';
 import 'package:ayrnow/ui/shared/ayr_logo.dart';
 import 'package:ayrnow/ui/shared/widgets/primary_button.dart';
-import 'package:ayrnow/features/auth/services/mock_auth_service.dart';
 import 'package:ayrnow/features/auth/screens/register_screen.dart';
 import 'package:ayrnow/core/backend/providers/backend_providers.dart';
 import 'package:ayrnow/core/api/providers/auth_controller_provider.dart';
-import 'package:ayrnow/core/api/providers/feature_flags_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -48,7 +46,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       final useFirebase = ref.read(useFirebaseBackendProvider);
-      final useRealApi = ref.read(featureFlagsProvider).auth;
 
       if (useFirebase) {
         final authService = ref.read(firebaseAuthServiceProvider);
@@ -56,22 +53,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (!mounted) return;
         ref.read(isLoggedInProvider.notifier).state = true;
         ref.read(hasChosenRoleProvider.notifier).state = true;
-      } else if (useRealApi) {
+      } else {
+        // Use JWT backend (AuthController)
         final success = await ref.read(authControllerProvider.notifier).login(email, password);
         if (!mounted) return;
         if (success) {
-          ref.read(hasChosenRoleProvider.notifier).state = true;
-        } else {
-          if (mounted) setState(() {
-            _loading = false;
-            _errorMessage = 'Invalid email or password. Try again.';
-          });
-        }
-      } else {
-        final success = await MockAuthService.login(email, password);
-        if (!mounted) return;
-        if (success) {
-          ref.read(isLoggedInProvider.notifier).state = true;
           ref.read(hasChosenRoleProvider.notifier).state = true;
         } else {
           if (mounted) setState(() {
