@@ -22,7 +22,7 @@ class LandlordUnitResidentsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(unitLabel != null ? 'Residents: $unitLabel' : 'L-50 • Residents'),
+        title: Text(unitLabel != null ? 'Residents: $unitLabel' : 'Residents & Family'),
       ),
       body: membersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -73,7 +73,7 @@ class LandlordUnitResidentsScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openInvite(context, ref),
         icon: const Icon(Icons.person_add_outlined),
-        label: const Text('Invite Member'),
+        label: const Text('Invite member'),
       ),
     );
   }
@@ -98,8 +98,11 @@ class _ReadOnlyMemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
+        leading: CircleAvatar(
+          child: Icon(Icons.person_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
         title: Text(member.name),
-        subtitle: Text(member.email),
+        subtitle: Text('${member.role.label} • ${member.status.label}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

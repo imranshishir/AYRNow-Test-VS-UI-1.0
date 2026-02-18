@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
 import '../models/household_models.dart';
-import 'invite_household_member_screen.dart';
-
 const _demoUnitId = 'unit-1';
 
 class TenantHouseholdScreen extends ConsumerWidget {
@@ -14,7 +12,7 @@ class TenantHouseholdScreen extends ConsumerWidget {
     final membersAsync = ref.watch(householdMembersProvider(_demoUnitId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('T-50 • Household')),
+      appBar: AppBar(title: const Text('Household')),
       body: membersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -55,18 +53,13 @@ class TenantHouseholdScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openInvite(context, ref),
         icon: const Icon(Icons.person_add_outlined),
-        label: const Text('Invite Member'),
+        label: const Text('Invite member'),
       ),
     );
   }
 
   Future<void> _openInvite(BuildContext context, WidgetRef ref) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const InviteHouseholdMemberScreen(unitId: _demoUnitId),
-      ),
-    );
+    await Navigator.pushNamed(context, '/T-50/invite');
     ref.invalidate(householdMembersProvider);
   }
 
@@ -103,8 +96,11 @@ class _MemberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
+        leading: CircleAvatar(
+          child: Icon(Icons.person_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
         title: Text(member.name),
-        subtitle: Text(member.email),
+        subtitle: Text('${member.role.label} • ${member.status.label}'),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -198,7 +194,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onInvite,
               icon: const Icon(Icons.person_add_outlined),
-              label: const Text('Invite Member'),
+              label: const Text('Invite member'),
             ),
           ],
         ),

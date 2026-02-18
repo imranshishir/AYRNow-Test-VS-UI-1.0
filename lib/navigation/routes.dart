@@ -9,6 +9,7 @@ import '../features/tenant/t10_pay_rent.dart';
 import '../features/contractor/c10_jobs_feed.dart';
 import '../features/guard/s10_approvals_queue.dart';
 import '../features/household/screens/tenant_household_screen.dart';
+import '../features/household/screens/invite_household_member_screen.dart';
 import '../features/household/screens/landlord_unit_residents_screen.dart';
 import '../features/landlord/screens/unit_detail_screen.dart';
 
@@ -24,6 +25,7 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/T-06'] = (_) => const TenantDashboardScreen();
   routes['/T-10'] = (_) => const PayRentScreen();
   routes['/T-50'] = (_) => const TenantHouseholdScreen();
+  routes['/T-50/invite'] = (_) => const InviteHouseholdMemberScreen();
   routes['/L-50'] = (_) => const LandlordUnitResidentsScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();

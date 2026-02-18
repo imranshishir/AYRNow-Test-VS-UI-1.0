@@ -34,7 +34,7 @@ final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
 // Household (family roles)
 final householdMembersProvider = FutureProvider.family<List<HouseholdMember>, String>((ref, unitId) async {
-  return ref.watch(reposProvider).householdRepo.listHouseholdMembers(unitId);
+  return ref.watch(reposProvider).householdRepo.listMembers(unitId: unitId);
 });
 
 final householdControllerProvider = Provider<HouseholdController>((ref) {
@@ -50,17 +50,24 @@ class HouseholdController {
     required String unitId,
     required String name,
     required String email,
+    String? phone,
     required HouseholdRole role,
   }) async {
     final repo = _ref.read(reposProvider).householdRepo;
-    final member = await repo.inviteMember(unitId: unitId, name: name, email: email, role: role);
+    final member = await repo.inviteMember(
+      unitId: unitId,
+      name: name,
+      email: email,
+      phone: phone,
+      role: role,
+    );
     _ref.invalidate(householdMembersProvider);
     return member;
   }
 
   Future<void> deactivateMember(String memberId) async {
     final repo = _ref.read(reposProvider).householdRepo;
-    await repo.deactivateMember(memberId);
+    await repo.deactivateMember(memberId: memberId);
     _ref.invalidate(householdMembersProvider);
   }
 }
