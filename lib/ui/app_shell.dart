@@ -7,6 +7,7 @@ import '../features/landlord/l12_dashboard.dart';
 import '../features/tenant/t06_dashboard.dart';
 import '../features/contractor/c10_jobs_feed.dart';
 import '../features/guard/s10_approvals_queue.dart';
+import '../features/community/screens/community_home_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -63,12 +64,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (i) => setState(() => index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.payments_outlined), label: 'Pay'),
-          NavigationDestination(icon: Icon(Icons.build_outlined), label: 'Tickets'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
+        destinations: _destinationsForRole(user.role),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.pushNamed(context, _fabRouteForRole(user.role)),
@@ -78,7 +74,22 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
+  List<NavigationDestination> _destinationsForRole(UserRole role) {
+    final base = [
+      const NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
+      const NavigationDestination(icon: Icon(Icons.payments_outlined), label: 'Pay'),
+      const NavigationDestination(icon: Icon(Icons.build_outlined), label: 'Tickets'),
+    ];
+    if (role == UserRole.landlord || role == UserRole.tenant) {
+      base.add(const NavigationDestination(icon: Icon(Icons.forum_outlined), label: 'Community'));
+    }
+    base.add(const NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'));
+    return base;
+  }
+
   String _tabTitle(int i) {
+    final dests = _destinationsForRole(ref.read(currentUserProvider).role);
+    if (i >= dests.length) return 'Profile';
     switch (i) {
       case 0:
         return 'AYRNOW';
@@ -86,6 +97,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         return 'Payments';
       case 2:
         return 'Maintenance';
+      case 3:
+        return dests.length > 4 ? 'Community' : 'Profile';
       default:
         return 'Profile';
     }
@@ -96,13 +109,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       case UserRole.tenant:
         return 'Pay';
       case UserRole.landlord:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
       case UserRole.investor:
+      case UserRole.admin:
         return 'New Ticket';
       case UserRole.contractor:
         return 'New Bid';
@@ -116,13 +124,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       case UserRole.tenant:
         return '/T-10';
       case UserRole.landlord:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
       case UserRole.investor:
+      case UserRole.admin:
         return '/L-30';
       case UserRole.contractor:
         return '/C-10';
@@ -132,19 +135,15 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   Widget _buildBodyForRole(UserRole role, int tab) {
-    // Keep it simple: Home shows the role dashboard; other tabs route to existing screens or placeholders.
+    final hasCommunity = role == UserRole.landlord || role == UserRole.tenant;
+
     if (tab == 0) {
       switch (role) {
         case UserRole.tenant:
           return const TenantDashboardScreen();
         case UserRole.landlord:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
-  case UserRole.investor:
-  case UserRole.admin:
         case UserRole.investor:
+        case UserRole.admin:
           return const LandlordDashboardScreen();
         case UserRole.contractor:
           return const ContractorJobsFeedScreen();
@@ -172,6 +171,10 @@ class _AppShellState extends ConsumerState<AppShell> {
           _QuickLink('Create ticket', Icons.add_task_outlined, '/T-20'),
         ],
       );
+    }
+
+    if (hasCommunity && tab == 3) {
+      return CommunityHomeScreen(isLandlord: role == UserRole.landlord);
     }
 
     return _QuickLinks(
