@@ -50,6 +50,15 @@ class TenantDashboardScreen extends ConsumerWidget {
               onTap: () => Navigator.pushNamed(context, '/T-14'),
             ),
           ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.swap_horiz_outlined),
+              title: const Text('Transfer Profile'),
+              subtitle: const Text('Export & move with verified history'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.pushNamed(context, '/T-45'),
+            ),
+          ),
         ],
       ),
     );
