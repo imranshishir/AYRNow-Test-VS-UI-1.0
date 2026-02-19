@@ -112,8 +112,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               leading: const Icon(Icons.logout),
               title: const Text('Sign out'),
               subtitle: const Text('Clear session and return to login'),
-              onTap: () {
-                ref.read(authTokenProvider.notifier).state = null;
+              onTap: () async {
+                await ref.read(authControllerProvider).logout();
+                if (!context.mounted) return;
                 Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
               },
             ),

@@ -1,15 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 
 import '../core/state/providers.dart';
 import '../core/models/role.dart';
-import '../core/models/user.dart';
-import '../core/backend/api_base_url.dart';
 
-/// Login via POST /v1/auth/login. Creates user if not exists (dev-friendly).
+/// Login via AuthController (POST /v1/auth/login + persist token). Creates user if not exists (dev-friendly).
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -42,43 +37,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
-      final body = {
-        'email': email,
-        'role': _role.name,
-        if (_nameController.text.trim().isNotEmpty) 'name': _nameController.text.trim(),
-      };
-      final baseUrl = await resolveApiBaseUrl();
-      final response = await http.post(
-        Uri.parse('$baseUrl/v1/auth/login'),
-        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-        body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 15));
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        final token = json['token'] as String?;
-        if (token != null && token.isNotEmpty) {
-          ref.read(authTokenProvider.notifier).state = token;
-          ref.read(currentUserProvider.notifier).state = AppUser(
-            id: json['userId'] as String? ?? '',
-            name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : (json['email'] as String? ?? email).split('@').first,
+      final result = await ref.read(authControllerProvider).login(
+            email: email,
             role: _role,
+            name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
           );
-          ref.invalidate(meProvider);
-          if (!mounted) return;
-          Navigator.pushReplacementNamed(context, '/home');
-        } else {
-          setState(() => _error = 'Invalid response from server');
-        }
+      if (!mounted) return;
+      if (result != null) {
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
-        String msg = 'Login failed';
-        try {
-          final j = jsonDecode(response.body) as Map<String, dynamic>?;
-          msg = (j?['message'] ?? j?['error'])?.toString() ?? msg;
-        } catch (_) {}
-        setState(() => _error = msg);
+        setState(() => _error = 'Login failed');
       }
     } catch (e) {
-      setState(() => _error = 'Network error: $e');
+      if (mounted) setState(() => _error = 'Network error: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
