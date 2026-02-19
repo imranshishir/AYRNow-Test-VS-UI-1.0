@@ -12,6 +12,9 @@ import '../../features/household/models/household_models.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
 
+/// Token from login (API mode). Cleared on sign out.
+final authTokenProvider = StateProvider<String?>((_) => null);
+
 final currentUserProvider = StateProvider<AppUser>((ref) {
   return const AppUser(id: 'u1', name: 'Demo User', role: UserRole.landlord);
 });
@@ -34,7 +37,6 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
   return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
