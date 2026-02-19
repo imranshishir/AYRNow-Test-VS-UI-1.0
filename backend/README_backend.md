@@ -7,18 +7,43 @@ Spring Boot 3.x backend for the AYRNOW Flutter app. Minimal Phase 1 scope with J
 - Java 17
 - PostgreSQL 14+
 
-## Run the app locally
+## E2E local run checklist
 
-1. **Start Postgres** (see [LOCAL_POSTGRES.md](LOCAL_POSTGRES.md) for Homebrew and one-time DB setup).
-2. Optional: create DB/user with `./scripts/local_db_bootstrap.sh` from project root.
-3. Run the backend:
+1. **Start Postgres** (macOS with Homebrew):
+   ```bash
+   brew services start postgresql@15
+   # or: brew services start postgresql@16  /  postgresql
+   ```
 
-```bash
-cd backend
-./gradlew bootRun
-```
+2. **Verify Postgres:**
+   ```bash
+   pg_isready -h localhost -p 5432
+   ```
 
-Server runs on port 8080.
+3. **Bootstrap DB** (one-time; from repo root):
+   ```bash
+   ./scripts/local_db_bootstrap.sh
+   ```
+
+4. **Run the backend:**
+   ```bash
+   cd backend
+   ./gradlew bootRun
+   ```
+
+5. **Verify health:**
+   ```bash
+   curl http://localhost:8080/actuator/health
+   ```
+
+6. **Login (curl example):**
+   ```bash
+   curl -X POST http://localhost:8080/v1/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"landlord@example.com","role":"landlord"}'
+   ```
+
+**Notes:** Schema is owned by Flyway (no Hibernate create-drop in dev). For iOS Simulator, if `127.0.0.1` doesn’t reach the host, set API Base URL in the app (Settings, debug) to `http://<your-mac-lan-ip>:8080` (e.g. `ipconfig getifaddr en0`).
 
 ## Local database setup (one-time)
 
@@ -27,8 +52,6 @@ See **[LOCAL_POSTGRES.md](LOCAL_POSTGRES.md)** for:
 - Starting Postgres on macOS (`brew services start postgresql@16`)
 - Idempotent create user/db and `scripts/local_db_bootstrap.sh`
 - Reset dev DB (destructive)
-
-Server runs on port 8080.
 
 ## Sample curl commands
 

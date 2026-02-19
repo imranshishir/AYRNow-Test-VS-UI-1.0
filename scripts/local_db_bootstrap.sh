@@ -37,7 +37,13 @@ END \$\$;
 # Create database (ignore error if already exists)
 psql -h "$HOST" -p "$PORT" -U "$USER" -d "$ADMIN_DB" -v ON_ERROR_STOP=0 -c "CREATE DATABASE ${APP_DB} OWNER ${APP_USER};" || true
 
-# Grant schema
-psql -h "$HOST" -p "$PORT" -U "$USER" -d "$APP_DB" -v ON_ERROR_STOP=1 -c "GRANT ALL ON SCHEMA public TO ${APP_USER};"
+# Grant schema and existing objects (so app user can read flyway_schema_history etc.)
+psql -h "$HOST" -p "$PORT" -U "$USER" -d "$APP_DB" -v ON_ERROR_STOP=1 -c "
+  GRANT ALL ON SCHEMA public TO ${APP_USER};
+  GRANT ALL ON ALL TABLES IN SCHEMA public TO ${APP_USER};
+  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO ${APP_USER};
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${APP_USER};
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${APP_USER};
+"
 
 echo "DB ready: ${APP_DB} (user ${APP_USER})"
