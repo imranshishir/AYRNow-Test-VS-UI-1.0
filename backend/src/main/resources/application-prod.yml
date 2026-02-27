@@ -1,0 +1,34 @@
+# Phase B13: Production environment
+# Required env: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
+#               JWT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    show-sql: false
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    root: WARN
+    com.ayrnow: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+auth:
+  dev-headers-enabled: false
+  jwt:
+    secret: ${JWT_SECRET}
+    access-minutes: ${JWT_ACCESS_MINUTES:15}
+  refresh:
+    days: ${JWT_REFRESH_DAYS:30}
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+  success-url: ${STRIPE_SUCCESS_URL:https://app.example.com/payment/success}
+  cancel-url: ${STRIPE_CANCEL_URL:https://app.example.com/payment/cancel}

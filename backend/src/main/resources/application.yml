@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: ayrnow-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ayrnow_dev}
+    username: ${SPRING_DATASOURCE_USERNAME:imranshishir}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Phase B12: JWT Auth
+auth:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-in-production-min-32-chars}
+    access-minutes: ${JWT_ACCESS_MINUTES:15}
+  refresh:
+    days: ${JWT_REFRESH_DAYS:30}
+  dev-headers-enabled: false  # true only in local profile
+
+# Phase B10: Stripe (env vars)
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  success-url: ${STRIPE_SUCCESS_URL:https://example.com/payment/success}
+  cancel-url: ${STRIPE_CANCEL_URL:https://example.com/payment/cancel}

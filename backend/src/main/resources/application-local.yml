@@ -1,0 +1,15 @@
+auth:
+  dev-headers-enabled: true
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ayrnow_dev
+    username: imranshishir
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    # Prod: classpath:db/migration only. Local adds db-local for V99 dev reset/seed.
+    locations: classpath:db/migration,classpath:db-local
