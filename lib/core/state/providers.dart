@@ -5,7 +5,13 @@ import 'package:http/http.dart' as http;
 
 import '../auth/auth_storage.dart';
 import '../backend/api_base_url.dart';
+import '../api/api_client.dart';
+import '../api/payments_api.dart';
 import '../repos/mock_repos.dart';
+import '../repos/property_repo.dart';
+import '../repos/real_property_repo.dart';
+import '../repos/invite_repo.dart';
+import '../repos/real_invite_repo.dart';
 import '../models/role.dart';
 import '../models/user.dart';
 import '../models/rent.dart';
@@ -19,6 +25,23 @@ import '../../features/household/models/household_models.dart';
 import '../../features/lease_onboarding/lease_onboarding_api.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
+
+/// Shared ApiClient that attaches the current auth token on requests.
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient(() => ref.read(authTokenProvider));
+});
+
+final paymentsApiProvider = Provider<PaymentsApi>((ref) {
+  return PaymentsApi(ref.read(apiClientProvider));
+});
+
+final propertyRepoProvider = Provider<PropertyRepo>((ref) {
+  return RealPropertyRepo(ref.read(apiClientProvider));
+});
+
+final inviteRepoProvider = Provider<InviteRepo>((ref) {
+  return RealInviteRepo(ref.read(apiClientProvider));
+});
 
 final authStorageProvider = Provider<AuthStorage>((ref) => AuthStorage());
 
@@ -267,6 +290,8 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
+final lastPaymentIdProvider = StateProvider<String?>((ref) => null);
+
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>,
     ({String role, String? scopeFilter})>((ref, params) async {
@@ -382,3 +407,14 @@ class HouseholdController {
     _ref.invalidate(householdMembersProvider);
   }
 }
+
+/// Landlord properties list for L-25.
+final propertiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  return ref.read(propertyRepoProvider).listProperties();
+});
+
+/// Units for a property (L-22 and L-21 refresh).
+final unitsProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, propertyId) async {
+  return ref.read(propertyRepoProvider).listUnits(propertyId);
+});

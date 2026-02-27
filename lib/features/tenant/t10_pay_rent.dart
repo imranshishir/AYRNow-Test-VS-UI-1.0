@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
+
+import '../../core/backend/stripe_config.dart';
 import '../../core/state/providers.dart';
 
 class PayRentScreen extends ConsumerStatefulWidget {
@@ -17,8 +20,9 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final repos = ref.read(reposProvider);
     final amount = ref.watch(tenantAmountDueProvider);
+    final lastPaymentId = ref.watch(lastPaymentIdProvider);
+    final stripeEnabled = isStripeConfigured;
 
     return Scaffold(
       appBar: AppBar(title: const Text('T-10 • Pay Rent')),
@@ -33,7 +37,8 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
                 children: [
                   const Text('Amount due', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Text('\$${amount.toStringAsFixed(0)}', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold)),
+                  Text('\$${amount.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   SwitchListTile(
                     value: autopay,
@@ -46,6 +51,14 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          if (!stripeEnabled)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Card payments are not enabled in this build (missing STRIPE_PUBLISHABLE_KEY).',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           if (error != null) ...[
             Card(
               color: Theme.of(context).colorScheme.errorContainer,
@@ -65,13 +78,19 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
           if (success == true) ...[
             Card(
               color: Theme.of(context).colorScheme.primaryContainer,
-              child: const Padding(
-                padding: EdgeInsets.all(12),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle_outline),
-                    SizedBox(width: 10),
-                    Expanded(child: Text('Payment successful (mock). Receipt available in T-14.')),
+                    const Icon(Icons.check_circle_outline),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        lastPaymentId != null
+                            ? 'Payment submitted. ID: $lastPaymentId'
+                            : 'Payment submitted.',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -79,17 +98,19 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
             const SizedBox(height: 12),
           ],
           FilledButton.icon(
-            onPressed: processing ? null : () async {
-              setState(() { processing = true; error = null; success = null; });
-              final ok = await repos.simulatePayment(amount: amount);
-              setState(() {
-                processing = false;
-                success = ok;
-                if (!ok) error = 'Payment failed (mock). Please try again.';
-              });
-            },
-            icon: processing ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.lock_outline),
-            label: Text(processing ? 'Processing…' : 'Pay now'),
+            onPressed: (!stripeEnabled || processing)
+                ? null
+                : () async {
+                    await _handlePay(context, amount);
+                  },
+            icon: processing
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.lock_outline),
+            label: Text(processing ? 'Processing…' : 'Pay with card'),
           ),
           const SizedBox(height: 10),
           OutlinedButton(
@@ -99,5 +120,68 @@ class _PayRentScreenState extends ConsumerState<PayRentScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handlePay(BuildContext context, double amount) async {
+    setState(() {
+      processing = true;
+      error = null;
+      success = null;
+    });
+    try {
+      // TODO: derive unitId from authenticated tenant/household context once wired to backend.
+      const unitId = '44444444-4444-4444-4444-444444444444';
+      final paymentsApi = ref.read(paymentsApiProvider);
+      final intent = await paymentsApi.createPaymentIntent(
+        unitId: unitId,
+        amountDollars: amount.round(),
+      );
+
+      if (intent.clientSecret == null || intent.clientSecret!.isEmpty) {
+        // Stubbed backend path: record payment without Stripe PaymentSheet.
+        ref.read(lastPaymentIdProvider.notifier).state = intent.paymentId;
+        setState(() {
+          processing = false;
+          success = true;
+        });
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment recorded (stubbed).')),
+          );
+        }
+        return;
+      }
+
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: intent.clientSecret!,
+          merchantDisplayName: 'AYRNOW',
+          style: ThemeMode.system,
+        ),
+      );
+
+      await Stripe.instance.presentPaymentSheet();
+
+      ref.read(lastPaymentIdProvider.notifier).state = intent.paymentId;
+      setState(() {
+        processing = false;
+        success = true;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment submitted.')),
+        );
+      }
+    } on StripeException catch (e) {
+      setState(() {
+        processing = false;
+        error = e.error.localizedMessage ?? 'Payment was canceled or failed.';
+      });
+    } catch (e) {
+      setState(() {
+        processing = false;
+        error = 'Unable to process payment. Please try again.';
+      });
+    }
   }
 }
