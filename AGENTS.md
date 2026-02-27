@@ -27,3 +27,5 @@ Flutter SDK 3.32.8 (Dart 3.8.1) is installed at `/opt/flutter/bin`. The PATH is 
 - The app uses hash-based routing for Flutter web (URLs like `localhost:8080/#/home`, `localhost:8080/#/L-23`).
 - `flutter run -d web-server` starts a debug web server but does not open a browser; navigate to `http://localhost:8080` manually or via `computerUse` subagent.
 - All data is mock — no authentication, no API keys, no database setup needed.
+- New screen files under `lib/features/` must be imported and registered in `lib/navigation/routes.dart` (via `routes['/ROUTE-ID'] = (_) => const ScreenWidget();`) to become navigable. The fallback `SpecScreen` placeholders use `putIfAbsent`, so explicit route entries always take priority.
+- The app serves a static build via `flutter build web`; for hot-reload during development, use `flutter run -d web-server` instead.
