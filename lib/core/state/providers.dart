@@ -34,7 +34,6 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
 final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
   return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
