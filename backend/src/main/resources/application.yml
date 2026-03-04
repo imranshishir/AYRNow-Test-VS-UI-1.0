@@ -1,0 +1,41 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ayrnow_dev}
+    username: ${DB_USER:ayrnow_app}
+    password: ${DB_PASSWORD:ayrnow_dev_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    # Keep base+seed for now; we will tighten later when we add staging/prod.
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/base,classpath:db/migration/seed}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+jwt:
+  secret: ${JWT_SECRET:change_me_dev_secret_min_32_characters_long_for_hmac256}
+  expirationMinutes: 1440
+
+stripe:
+  secretKey: ${STRIPE_SECRET_KEY:}
+
+ayrnow:
+  cors:
+    # Local default allows all; set this in AWS to your real domains.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}

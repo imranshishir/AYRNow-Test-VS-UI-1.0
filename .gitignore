@@ -3,6 +3,8 @@
 .packages
 .pub/
 build/
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # iOS
 ios/Pods/
@@ -11,6 +13,7 @@ ios/Flutter/Flutter.framework/
 ios/Flutter/App.framework/
 ios/Flutter/Generated.xcconfig
 ios/Flutter/ephemeral/
+DerivedData/
 
 # Android
 android/.gradle/
@@ -25,3 +28,13 @@ android/key.properties
 
 # macOS
 .DS_Store
+
+# Gradle / Maven Backend
+backend/.gradle/
+backend/build/
+backend/target/
+backend/bin/
+
+# Environment files
+.env
+backend/.env
