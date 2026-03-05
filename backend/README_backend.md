@@ -10,28 +10,33 @@ Spring Boot 3.x backend for the AYRNOW Flutter app. Minimal Phase 1 scope with J
 ## E2E local run checklist
 
 1. **Start Postgres** (macOS with Homebrew):
+
    ```bash
    brew services start postgresql@15
    # or: brew services start postgresql@16  /  postgresql
    ```
 
 2. **Verify Postgres:**
+
    ```bash
    pg_isready -h localhost -p 5432
    ```
 
 3. **Bootstrap DB** (one-time; from repo root):
+
    ```bash
    ./scripts/local_db_bootstrap.sh
    ```
 
 4. **Run the backend:**
+
    ```bash
    cd backend
    ./gradlew bootRun
    ```
 
 5. **Verify health:**
+
    ```bash
    curl http://localhost:8081/actuator/health
    ```
@@ -64,8 +69,9 @@ curl -X POST http://localhost:8081/v1/auth/login \
 ```
 
 Response:
+
 ```json
-{"token":"eyJ...","role":"landlord","userId":"..."}
+{ "token": "eyJ...", "role": "landlord", "userId": "..." }
 ```
 
 ### Get current user (with token)
@@ -124,13 +130,13 @@ When `STRIPE_SECRET_KEY` is set to a Stripe **test** key (`sk_test_...`), the ba
 
 ## Environment variables (EC2)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `SPRING_DATASOURCE_URL` | PostgreSQL JDBC URL | `jdbc:postgresql://host:5432/ayrnow` |
-| `SPRING_DATASOURCE_USERNAME` | DB user | `ayrnow_app` |
-| `SPRING_DATASOURCE_PASSWORD` | DB password | (secret) |
-| `JWT_SECRET` | JWT signing secret (min 32 chars) | (secret) |
-| `STRIPE_SECRET_KEY` | Stripe API key (optional) | `sk_live_...` |
+| Variable                     | Description                       | Example                              |
+| ---------------------------- | --------------------------------- | ------------------------------------ |
+| `SPRING_DATASOURCE_URL`      | PostgreSQL JDBC URL               | `jdbc:postgresql://host:5432/ayrnow` |
+| `SPRING_DATASOURCE_USERNAME` | DB user                           | `ayrnow_app`                         |
+| `SPRING_DATASOURCE_PASSWORD` | DB password                       | (secret)                             |
+| `JWT_SECRET`                 | JWT signing secret (min 32 chars) | (secret)                             |
+| `STRIPE_SECRET_KEY`          | Stripe API key (optional)         | `sk_live_...`                        |
 
 ## Health check
 
@@ -152,11 +158,11 @@ On push to `main` (backend changes only), the workflow builds, tests, and deploy
 
 ### Required GitHub Secrets
 
-| Secret        | Description                         |
-|---------------|-------------------------------------|
-| `EC2_HOST`    | EC2 instance IP or hostname         |
-| `EC2_USER`    | SSH user (default: `ubuntu`)        |
-| `EC2_SSH_KEY` | Private key contents (PEM) for SSH  |
+| Secret        | Description                        |
+| ------------- | ---------------------------------- |
+| `EC2_HOST`    | EC2 instance IP or hostname        |
+| `EC2_USER`    | SSH user (default: `ubuntu`)       |
+| `EC2_SSH_KEY` | Private key contents (PEM) for SSH |
 
 Add these under **Settings → Secrets and variables → Actions**.
 

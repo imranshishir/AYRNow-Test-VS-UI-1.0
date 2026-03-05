@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
 import '../models/household_models.dart';
 
-const _demoUnitId = 'unit-1';
-
 class InviteHouseholdMemberScreen extends ConsumerStatefulWidget {
   final String unitId;
   final HouseholdRole? defaultRole;
@@ -13,7 +11,7 @@ class InviteHouseholdMemberScreen extends ConsumerStatefulWidget {
 
   const InviteHouseholdMemberScreen({
     super.key,
-    this.unitId = _demoUnitId,
+    required this.unitId,
     this.defaultRole,
     this.isLandlord = false,
   });
@@ -45,13 +43,11 @@ class _InviteHouseholdMemberScreenState extends ConsumerState<InviteHouseholdMem
   }
 
   bool get _canSubmit =>
-      _nameController.text.trim().isNotEmpty && _emailController.text.trim().isNotEmpty && !_loading;
-
-  String _generateInviteCode() {
-    final n = DateTime.now().millisecondsSinceEpoch % 1000000;
-    final chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    return 'AYR-${chars[(n ~/ 10000) % chars.length]}${chars[(n ~/ 1000) % chars.length]}${chars[(n ~/ 100) % chars.length]}${chars[(n ~/ 10) % chars.length]}${chars[n % chars.length]}';
-  }
+      widget.unitId.isNotEmpty &&
+      _nameController.text.trim().isNotEmpty &&
+      _emailController.text.trim().isNotEmpty &&
+      !_loading;
+  String? _inviteToken;
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
@@ -60,20 +56,17 @@ class _InviteHouseholdMemberScreenState extends ConsumerState<InviteHouseholdMem
       _error = null;
     });
     try {
-      await ref.read(householdControllerProvider).inviteMember(
+      final resp = await ref.read(inviteRepoProvider).createUnitInvite(
             unitId: widget.unitId,
-            name: _nameController.text.trim(),
             email: _emailController.text.trim(),
-            phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-            role: _role,
           );
+      _inviteToken = resp['token']?.toString();
       if (!mounted) return;
-      final code = _generateInviteCode();
-      await _showInviteCodeSheet(context, code);
+      await _showInviteCodeSheet(context, _inviteToken ?? 'Created');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Invite created. Sharing links will be enabled after backend integration.'),
+          content: Text('Invite created.'),
         ),
       );
       Navigator.pop(context, true);
@@ -151,6 +144,16 @@ class _InviteHouseholdMemberScreenState extends ConsumerState<InviteHouseholdMem
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (widget.unitId.isEmpty) ...[
+            Card(
+              color: theme.colorScheme.errorContainer,
+              child: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text('Missing unit. Close this screen and try again from a specific unit.'),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           TextField(
             controller: _nameController,
             decoration: const InputDecoration(

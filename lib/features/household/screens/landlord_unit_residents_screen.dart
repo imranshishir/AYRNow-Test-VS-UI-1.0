@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
 import '../models/household_models.dart';
-import 'invite_household_member_screen.dart';
-
-const _demoUnitId = 'unit-1';
-
 class LandlordUnitResidentsScreen extends ConsumerWidget {
   final String unitId;
   final String? unitLabel;
 
   const LandlordUnitResidentsScreen({
     super.key,
-    this.unitId = _demoUnitId,
+    required this.unitId,
     this.unitLabel,
   });
 
@@ -79,11 +75,10 @@ class LandlordUnitResidentsScreen extends ConsumerWidget {
   }
 
   Future<void> _openInvite(BuildContext context, WidgetRef ref) async {
-    await Navigator.push(
+    await Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (_) => InviteHouseholdMemberScreen(unitId: unitId, isLandlord: true),
-      ),
+      '/T-50/invite',
+      arguments: {'unitId': unitId, 'isLandlord': true},
     );
     ref.invalidate(householdMembersProvider);
   }

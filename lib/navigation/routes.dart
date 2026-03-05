@@ -4,6 +4,10 @@ import '../ui/spec_index_screen.dart';
 import '../features/landlord/l12_dashboard.dart';
 import '../features/landlord/l23_rent_board.dart';
 import '../features/landlord/l30_maintenance_inbox.dart';
+import '../features/landlord/screens/l20_add_property.dart';
+import '../features/landlord/screens/l21_add_unit.dart';
+import '../features/landlord/screens/l22_property_detail.dart';
+import '../features/landlord/screens/l25_property_list.dart';
 import '../features/tenant/t06_dashboard.dart';
 import '../features/tenant/t10_pay_rent.dart';
 import '../features/contractor/c10_jobs_feed.dart';
@@ -24,6 +28,10 @@ Map<String, WidgetBuilder> buildRoutes() {
 
   // Real screens
   routes['/L-12'] = (_) => const LandlordDashboardScreen();
+  routes['/L-20'] = (_) => const AddPropertyScreen();
+  routes['/L-21'] = (_) => const AddUnitScreen();
+  routes['/L-22'] = (_) => const PropertyDetailScreen();
+  routes['/L-25'] = (_) => const PropertyListScreen();
   routes['/L-23'] = (_) => const RentBoardScreen();
   routes['/L-30'] = (_) => const MaintenanceInboxScreen();
   routes['/L-24'] = (_) => const UnitDetailScreen();
@@ -33,8 +41,26 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/T-45/request'] = (_) => const TenantTransferRequestScreen();
   routes['/L-45'] = (_) => const LandlordTransferInboxScreen();
   routes['/T-50'] = (_) => const TenantHouseholdScreen();
-  routes['/T-50/invite'] = (_) => const InviteHouseholdMemberScreen();
-  routes['/L-50'] = (_) => const LandlordUnitResidentsScreen();
+  routes['/T-50/invite'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final unitId = map['unitId']?.toString() ?? '';
+    final isLandlord = map['isLandlord'] as bool? ?? false;
+    return InviteHouseholdMemberScreen(
+      unitId: unitId,
+      isLandlord: isLandlord,
+    );
+  };
+  routes['/L-50'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final unitId = map['unitId']?.toString() ?? '';
+    final unitLabel = map['unitLabel']?.toString();
+    return LandlordUnitResidentsScreen(
+      unitId: unitId,
+      unitLabel: unitLabel,
+    );
+  };
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
 
