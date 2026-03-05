@@ -58,8 +58,8 @@ class OnboardingIntegrationTest {
     }
 
     private String loginAndGetToken(String email, String role) throws Exception {
-        String req = objectMapper.writeValueAsString(new LoginPayload(email, role));
-        String response = mockMvc.perform(post("/v1/auth/login")
+        String req = objectMapper.writeValueAsString(new RegisterPayload(email, "password", role));
+        String response = mockMvc.perform(post("/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(req))
                 .andExpect(status().isOk())
@@ -67,6 +67,6 @@ class OnboardingIntegrationTest {
         return objectMapper.readTree(response).get("token").asText();
     }
 
-    record LoginPayload(String email, String role) {}
+    record RegisterPayload(String email, String password, String role) {}
     record OnboardingPropertyPayload(String name, String address, java.util.List<String> units) {}
 }

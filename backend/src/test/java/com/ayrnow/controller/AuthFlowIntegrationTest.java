@@ -48,8 +48,8 @@ class AuthFlowIntegrationTest {
     }
 
     private String loginAndGetToken(String email, String role) throws Exception {
-        String body = objectMapper.writeValueAsString(new LoginPayload(email, role));
-        ResultActions result = mockMvc.perform(post("/v1/auth/login")
+        String body = objectMapper.writeValueAsString(new RegisterPayload(email, "password", role));
+        ResultActions result = mockMvc.perform(post("/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
@@ -58,5 +58,5 @@ class AuthFlowIntegrationTest {
         return objectMapper.readTree(response).get("token").asText();
     }
 
-    record LoginPayload(String email, String role) {}
+    record RegisterPayload(String email, String password, String role) {}
 }

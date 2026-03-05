@@ -23,6 +23,9 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @Column(name = "password_hash")
+    private String passwordHash;
+
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public String getEmail() { return email; }
@@ -33,4 +36,6 @@ public class User {
     public void setRole(String role) { this.role = role; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 }

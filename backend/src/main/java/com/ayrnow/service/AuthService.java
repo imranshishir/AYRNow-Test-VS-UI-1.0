@@ -17,25 +17,35 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, JwtService jwtService, RefreshTokenService refreshTokenService) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, RefreshTokenService refreshTokenService, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Transactional
+    public LoginResponse register(com.ayrnow.dto.RegisterRequest req) {
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already taken");
+        }
+        User user = createUser(req.getEmail(), req.getRole(), req.getName(), passwordEncoder.encode(req.getPassword()));
+        return generateTokens(user);
     }
 
     @Transactional
     public LoginResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.getEmail())
-                .orElseGet(() -> createUser(req.getEmail(), req.getRole(), req.getName()));
-        if (user.getRole() == null || !user.getRole().equalsIgnoreCase(req.getRole())) {
-            user.setRole(req.getRole());
-            if (req.getName() != null && !req.getName().isBlank()) user.setName(req.getName());
-            user = userRepository.save(user);
-        } else if (req.getName() != null && !req.getName().isBlank()) {
-            user.setName(req.getName());
-            user = userRepository.save(user);
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Invalid credentials");
         }
+        return generateTokens(user);
+    }
+
+    private LoginResponse generateTokens(User user) {
         String token = jwtService.createToken(user.getId().toString(), user.getEmail(), user.getRole());
         String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
         return new LoginResponse(token, refreshToken, user.getRole(), user.getId().toString(), user.getEmail());
@@ -57,12 +67,13 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException(requestRefreshToken + " Refresh token is not in the database!"));
     }
 
-    private User createUser(String email, String role, String name) {
+    private User createUser(String email, String role, String name, String encodedPassword) {
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setEmail(email);
         user.setName(name != null && !name.isBlank() ? name : email.split("@")[0]);
         user.setRole(role);
+        user.setPasswordHash(encodedPassword);
         user.setCreatedAt(Instant.now());
         return userRepository.save(user);
     }

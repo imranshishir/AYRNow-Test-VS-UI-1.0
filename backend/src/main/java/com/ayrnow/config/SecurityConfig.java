@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .csrf(c -> c.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/v1/auth/login", "/v1/auth/refresh").permitAll()
+                        .requestMatchers("/v1/auth/login", "/v1/auth/refresh", "/v1/auth/register").permitAll()
                         .requestMatchers("/v1/webhooks/**").permitAll()
                                 .requestMatchers("/api/v1/health", "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/v1/**").authenticated()
@@ -41,6 +41,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(c -> {});
         return http.build();
+    }
+
+    @Bean
+    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
     }
 
     @Bean

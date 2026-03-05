@@ -25,4 +25,9 @@ public class AuthController {
     public LoginResponse refreshtoken(@Valid @RequestBody com.ayrnow.dto.TokenRefreshRequest request) {
         return authService.refreshToken(request);
     }
+
+    @PostMapping("/register")
+    public LoginResponse register(@Valid @RequestBody com.ayrnow.dto.RegisterRequest request) {
+        return authService.register(request);
+    }
 }

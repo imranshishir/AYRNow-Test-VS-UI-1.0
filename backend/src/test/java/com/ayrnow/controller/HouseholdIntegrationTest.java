@@ -1,5 +1,24 @@
 package com.ayrnow.controller;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.notNullValue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.ayrnow.domain.HouseholdMember;
 import com.ayrnow.domain.Membership;
 import com.ayrnow.domain.Property;
@@ -11,22 +30,6 @@ import com.ayrnow.repository.PropertyRepository;
 import com.ayrnow.repository.UnitRepository;
 import com.ayrnow.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -54,6 +57,9 @@ class HouseholdIntegrationTest {
     @Autowired
     HouseholdMemberRepository householdMemberRepository;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     private User tenant;
     private Property property;
     private Unit unit;
@@ -68,6 +74,7 @@ class HouseholdIntegrationTest {
         tenant.setEmail("household-tenant-" + uniqueId + "@example.com");
         tenant.setName("Primary Tenant");
         tenant.setRole("tenant");
+        tenant.setPasswordHash(passwordEncoder.encode("password123"));
         tenant.setCreatedAt(Instant.now());
         tenant = userRepository.save(tenant);
 
@@ -105,7 +112,7 @@ class HouseholdIntegrationTest {
 
     @Test
     void tenant_inviteMember_then_listMembers_returnsBoth() throws Exception {
-        String token = loginAndGetToken(tenant.getEmail(), "tenant");
+        String token = loginAndGetToken(tenant.getEmail(), "password123");
         String inviteEmail = "co-tenant-" + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
 
         String inviteBody = objectMapper.writeValueAsString(new InvitePayload(
@@ -131,7 +138,7 @@ class HouseholdIntegrationTest {
 
     @Test
     void tenant_listMembers_returnsExistingMembers() throws Exception {
-        String token = loginAndGetToken(tenant.getEmail(), "tenant");
+        String token = loginAndGetToken(tenant.getEmail(), "password123");
 
         mockMvc.perform(get("/v1/household/members")
                         .param("unitId", unit.getId().toString())
@@ -143,8 +150,8 @@ class HouseholdIntegrationTest {
                 .andExpect(jsonPath("$[?(@.status=='active')]").exists());
     }
 
-    private String loginAndGetToken(String email, String role) throws Exception {
-        String req = objectMapper.writeValueAsString(new LoginPayload(email, role));
+    private String loginAndGetToken(String email, String password) throws Exception {
+        String req = objectMapper.writeValueAsString(new LoginPayload(email, password));
         String response = mockMvc.perform(post("/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(req))
@@ -153,6 +160,6 @@ class HouseholdIntegrationTest {
         return objectMapper.readTree(response).get("token").asText();
     }
 
-    record LoginPayload(String email, String role) {}
+    record LoginPayload(String email, String password) {}
     record InvitePayload(UUID unitId, String name, String email, String phone, String role) {}
 }

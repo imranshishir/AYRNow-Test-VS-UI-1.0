@@ -1,7 +1,9 @@
 package com.ayrnow.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -10,17 +12,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.ayrnow.domain.Notification;
 import com.ayrnow.repository.NotificationRepository;
-
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Ensures notifications API returns JSON with "isRead" field (not "read") for Flutter contract.
@@ -63,8 +63,8 @@ class NotificationControllerTest {
     }
 
     private String loginAndGetToken(String email, String role) throws Exception {
-        String body = "{\"email\":\"" + email + "\",\"role\":\"" + role + "\"}";
-        ResultActions result = mockMvc.perform(post("/v1/auth/login")
+        String body = "{\"email\":\"" + email + "\",\"password\":\"testpass\",\"role\":\"" + role + "\"}";
+        ResultActions result = mockMvc.perform(post("/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk());
