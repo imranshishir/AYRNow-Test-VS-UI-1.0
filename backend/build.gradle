@@ -11,6 +11,45 @@ java {
     sourceCompatibility = '17'
 }
 
+sourceSets {
+    main {
+        java {
+            // Exclude legacy /api/v1 controllers and alternate security/Stripe wiring from this build.
+            // DTOs and services remain so that other code depending on their types can compile.
+            exclude 'com/ayrnow/api/*Controller.java'
+            exclude 'com/ayrnow/api/StripeSessionHelper.java'
+            exclude 'com/ayrnow/security/**'
+            exclude 'com/ayrnow/service/StripeService.java'
+            exclude 'com/ayrnow/service/StripeWebhookService.java'
+            exclude 'com/ayrnow/service/TicketCommentService.java'
+            exclude 'com/ayrnow/service/CommunityPostService.java'
+            exclude 'com/ayrnow/service/PostReactionService.java'
+            exclude 'com/ayrnow/service/PostCommentService.java'
+            exclude 'com/ayrnow/service/BalanceService.java'
+            exclude 'com/ayrnow/service/LedgerService.java'
+            exclude 'com/ayrnow/service/UnitService.java'
+            exclude 'com/ayrnow/service/VisitorEntryService.java'
+            exclude 'com/ayrnow/service/PropertySecuritySettingsService.java'
+            exclude 'com/ayrnow/service/LeaseService.java'
+            exclude 'com/ayrnow/service/TenantInviteService.java'
+            exclude 'com/ayrnow/service/UnitMemberService.java'
+            // Exclude duplicate /api/v1-style refresh token repository to avoid bean clashes.
+            exclude 'com/ayrnow/domain/repository/RefreshTokenRepository.java'
+            // Exclude duplicate /api/v1-style ticket comment repository; use com.ayrnow.repository.TicketCommentRepository instead.
+            exclude 'com/ayrnow/domain/repository/TicketCommentRepository.java'
+            // Exclude duplicate /api/v1-style community post & notification repositories; use com.ayrnow.repository variants.
+            exclude 'com/ayrnow/domain/repository/CommunityPostRepository.java'
+            exclude 'com/ayrnow/domain/repository/NotificationRepository.java'
+            // Exclude duplicate /api/v1-style property repository; use com.ayrnow.repository.PropertyRepository instead.
+            exclude 'com/ayrnow/domain/repository/PropertyRepository.java'
+            // Exclude duplicate /api/v1-style ledger entry repository; use com.ayrnow.repository.LedgerEntryRepository instead.
+            exclude 'com/ayrnow/domain/repository/LedgerEntryRepository.java'
+            // Exclude duplicate /api/v1-style unit repository; use com.ayrnow.repository.UnitRepository instead.
+            exclude 'com/ayrnow/domain/repository/UnitRepository.java'
+        }
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -25,6 +64,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql:10.22.0'

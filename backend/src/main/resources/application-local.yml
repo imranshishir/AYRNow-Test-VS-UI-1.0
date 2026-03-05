@@ -1,8 +1,11 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ayrnow
-    username: ayrnow
-    password: ayrnow
+    url: jdbc:postgresql://localhost:5432/ayrnow_dev
+    username: ayrnow_app
+    password: ayrnow_dev_password
+  jpa:
+    hibernate:
+      ddl-auto: none
   flyway:
     enabled: true
     locations: classpath:db/migration/base,classpath:db/migration/seed

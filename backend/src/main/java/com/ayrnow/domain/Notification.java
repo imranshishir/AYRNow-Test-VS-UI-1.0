@@ -36,7 +36,7 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public UUID getId() { return id; }

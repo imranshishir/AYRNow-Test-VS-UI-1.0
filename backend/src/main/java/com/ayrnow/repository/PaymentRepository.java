@@ -12,4 +12,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     @Query("SELECT COUNT(p) > 0 FROM Payment p WHERE p.unitId = :unitId AND p.status IN ('succeeded', 'stubbed') AND p.createdAt >= :since")
     boolean existsSucceededForUnitSince(UUID unitId, Instant since);
+
+    List<Payment> findByTenantUserIdOrderByCreatedAtDesc(UUID tenantUserId);
 }

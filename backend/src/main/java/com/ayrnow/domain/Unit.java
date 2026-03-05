@@ -18,7 +18,7 @@ public class Unit {
     @Column(nullable = false)
     private String label;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public UUID getId() { return id; }

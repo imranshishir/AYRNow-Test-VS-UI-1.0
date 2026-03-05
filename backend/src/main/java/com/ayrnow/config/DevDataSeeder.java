@@ -40,6 +40,7 @@ public class DevDataSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         log.info("Running local DevDataSeeder...");
         String defaultPass = passwordEncoder.encode("DemoPass!234");
+        String testPass = passwordEncoder.encode("Test12345!");
 
         // Seed Users
         User landlord1 = ensureUser("landlord1@ayrnow.dev", "Demo Landlord 1", "landlord", defaultPass);
@@ -48,8 +49,13 @@ public class DevDataSeeder implements CommandLineRunner {
         User tenant2 = ensureUser("tenant2@ayrnow.dev", "Demo Tenant 2", "tenant", defaultPass);
         User contractor1 = ensureUser("contractor1@ayrnow.dev", "Demo Contractor 1", "contractor", defaultPass);
         User security1 = ensureUser("security1@ayrnow.dev", "Demo Security 1", "security_guard", defaultPass);
-        
-        log.info("Demo users seeded successfully.");
+
+        // Targeted test users for local end-to-end flows.
+        User testTenant = ensureUser("test.tenant@ayrnow.dev", "Test Tenant", "tenant", testPass);
+        User testLandlord = ensureUser("test.landlord@ayrnow.dev", "Test Landlord", "landlord", testPass);
+
+        log.info("Demo users seeded successfully. Test users: {}, {}",
+                testTenant.getEmail(), testLandlord.getEmail());
     }
 
     private User ensureUser(String email, String name, String role, String encodedPassword) {

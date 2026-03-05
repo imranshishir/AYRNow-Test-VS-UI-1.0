@@ -20,7 +20,7 @@ public class Property {
 
     private String address;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public UUID getId() { return id; }

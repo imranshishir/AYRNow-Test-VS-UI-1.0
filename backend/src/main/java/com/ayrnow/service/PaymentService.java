@@ -117,6 +117,11 @@ public class PaymentService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<Payment> listForTenant(UUID tenantUserId) {
+        return paymentRepository.findByTenantUserIdOrderByCreatedAtDesc(tenantUserId);
+    }
+
     private int resolveAmountCents(CreatePaymentIntentRequest req) {
         Integer cents = req.getAmountCents();
         if (cents != null) {

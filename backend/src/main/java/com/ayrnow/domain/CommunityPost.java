@@ -30,7 +30,7 @@ public class CommunityPost {
     private String audience;
     @Column(name = "comment_count", nullable = false)
     private int commentCount;
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     public UUID getId() { return id; }
