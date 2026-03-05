@@ -34,14 +34,18 @@ final approvalsProvider = FutureProvider<List<EntryApproval>>((ref) async {
 
 final tenantAmountDueProvider = StateProvider<double>((ref) => 1650.00);
 
-<<<<<<< HEAD
 /// Community posts. [scopeFilter] null = all, 'property' or 'unit' to filter.
-final communityPostsProvider = FutureProvider.family<List<CommunityPost>, ({String role, String? scopeFilter})>((ref, params) async {
-  return ref.watch(reposProvider).communityRepo.listPosts(role: params.role, scopeFilter: params.scopeFilter);
+final communityPostsProvider = FutureProvider.family<List<CommunityPost>,
+    ({String role, String? scopeFilter})>((ref, params) async {
+  return ref
+      .watch(reposProvider)
+      .communityRepo
+      .listPosts(role: params.role, scopeFilter: params.scopeFilter);
 });
 
 /// Comments for a post.
-final communityCommentsProvider = FutureProvider.family<List<CommunityComment>, String>((ref, postId) async {
+final communityCommentsProvider =
+    FutureProvider.family<List<CommunityComment>, String>((ref, postId) async {
   return ref.watch(reposProvider).communityRepo.listComments(postId);
 });
 
@@ -51,15 +55,23 @@ final tenantProfileProvider = FutureProvider<TenantProfile>((ref) async {
 });
 
 final myTransferRequestProvider = FutureProvider<TransferRequest?>((ref) async {
-  return ref.watch(reposProvider).tenantTransferRepo.getMyActiveTransferRequest();
+  return ref
+      .watch(reposProvider)
+      .tenantTransferRepo
+      .getMyActiveTransferRequest();
 });
 
-final landlordTransferInboxProvider = FutureProvider.family<List<TransferRequest>, String?>((ref, status) async {
-  return ref.watch(reposProvider).tenantTransferRepo.listTransferRequestsForLandlord(status: status);
+final landlordTransferInboxProvider =
+    FutureProvider.family<List<TransferRequest>, String?>((ref, status) async {
+  return ref
+      .watch(reposProvider)
+      .tenantTransferRepo
+      .listTransferRequestsForLandlord(status: status);
 });
 
 /// Invalidate these after create/decide so UI refreshes.
-final transferRequestControllerProvider = Provider<TransferRequestController>((ref) {
+final transferRequestControllerProvider =
+    Provider<TransferRequestController>((ref) {
   return TransferRequestController(ref);
 });
 
@@ -73,7 +85,8 @@ class TransferRequestController {
     required String note,
   }) async {
     final repo = _ref.read(reposProvider).tenantTransferRepo;
-    final req = await repo.createTransferRequest(targetEmailOrCode: targetEmailOrCode, note: note);
+    final req = await repo.createTransferRequest(
+        targetEmailOrCode: targetEmailOrCode, note: note);
     _ref.invalidate(myTransferRequestProvider);
     _ref.invalidate(landlordTransferInboxProvider);
     return req;
@@ -97,7 +110,8 @@ class TransferRequestController {
 }
 
 // Household (family roles)
-final householdMembersProvider = FutureProvider.family<List<HouseholdMember>, String>((ref, unitId) async {
+final householdMembersProvider =
+    FutureProvider.family<List<HouseholdMember>, String>((ref, unitId) async {
   return ref.watch(reposProvider).householdRepo.listMembers(unitId: unitId);
 });
 
