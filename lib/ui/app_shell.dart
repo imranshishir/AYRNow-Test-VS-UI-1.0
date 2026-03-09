@@ -53,6 +53,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         destinations: _destinationsForRole(user.role),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'app_shell_fab',
         onPressed: () => Navigator.pushNamed(context, _fabRouteForRole(user.role)),
         icon: const Icon(Icons.add),
         label: Text(_fabLabelForRole(user.role)),
