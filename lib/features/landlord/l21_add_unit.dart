@@ -189,7 +189,7 @@ class _AddUnitScreenState extends ConsumerState<AddUnitScreen> {
     try {
       final baseUrl = await resolveApiBaseUrl();
       final uri =
-          Uri.parse('$baseUrl/api/v1/properties/${widget.propertyId}/units');
+          Uri.parse('$baseUrl/v1/properties/${widget.propertyId}/units');
 
       final token = ref.read(authTokenProvider);
       final headers = <String, String>{

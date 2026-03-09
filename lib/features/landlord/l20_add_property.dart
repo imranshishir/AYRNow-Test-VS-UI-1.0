@@ -46,7 +46,7 @@ class _AddPropertyScreenState extends ConsumerState<AddPropertyScreen> {
     setState(() { _submitting = true; _error = null; });
     try {
       final baseUrl = await resolveApiBaseUrl();
-      final uri = Uri.parse('$baseUrl/api/v1/properties');
+      final uri = Uri.parse('$baseUrl/v1/properties');
       final headers = <String, String>{
         'Content-Type': 'application/json',
         'Accept': 'application/json',

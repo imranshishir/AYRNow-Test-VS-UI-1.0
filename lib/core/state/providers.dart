@@ -26,7 +26,7 @@ final bootTokenProvider = FutureProvider<String?>((ref) async {
   return ref.read(authStorageProvider).readToken();
 });
 
-/// Resolves once at startup: restores token from storage, validates with GET /api/v1/me.
+/// Resolves once at startup: restores token from storage, validates with GET /v1/me.
 /// Returns [AppUser] if valid, null otherwise (and clears storage on failure).
 final initialSessionProvider = FutureProvider<AppUser?>((ref) async {
   final token = await ref.watch(bootTokenProvider.future);
@@ -65,7 +65,7 @@ class AuthController {
   AuthController(this._ref);
   final Ref _ref;
 
-  /// Calls POST /api/v1/auth/login with email and password; saves token; sets authTokenProvider and currentUserProvider.
+  /// Calls POST /v1/auth/login with email and password; saves token; sets authTokenProvider and currentUserProvider.
   /// Returns (token, user) on success; null on failure. Role comes from backend response.
   Future<({String token, AppUser user})?> login({
     required String email,

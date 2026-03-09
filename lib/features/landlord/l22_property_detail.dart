@@ -234,7 +234,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
 
   Future<List<PropertyUnitDto>> _fetchUnits(String propertyId) async {
     final baseUrl = await resolveApiBaseUrl();
-    final uri = Uri.parse('$baseUrl/api/v1/properties/$propertyId/units');
+    final uri = Uri.parse('$baseUrl/v1/properties/$propertyId/units');
     final headers = <String, String>{
       'Accept': 'application/json',
     };
