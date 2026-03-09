@@ -108,6 +108,50 @@ class AuthController {
     return (token: token, user: user);
   }
 
+  /// Calls POST /v1/auth/register; on success saves token and sets session (same as login). Returns (token, user) or null.
+  Future<({String token, AppUser user})?> register({
+    required String email,
+    required String password,
+    required String role,
+    String? name,
+  }) async {
+    final baseUrl = await resolveApiBaseUrl();
+    final uri = Uri.parse('$baseUrl/v1/auth/register');
+    final body = <String, dynamic>{
+      'email': email,
+      'password': password,
+      'role': role,
+      if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+    };
+    final response = await http
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 15));
+    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    Map<String, dynamic>? data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>?;
+    } catch (_) {
+      return null;
+    }
+    final token = data?['accessToken'] as String? ?? data?['token'] as String?;
+    final userId = (data?['userId'] ?? data?['id'])?.toString() ?? '';
+    if (token == null || token.isEmpty) return null;
+    await _ref.read(authStorageProvider).writeToken(token);
+    _ref.read(authTokenProvider.notifier).state = token;
+    final roleStr = data?['role'] as String? ?? role;
+    final userRole = UserRole.values.asNameMap()[roleStr] ?? UserRole.tenant;
+    final displayName = (name != null && name.trim().isNotEmpty)
+        ? name.trim()
+        : (data?['email'] as String? ?? email).split('@').first;
+    final user = AppUser(id: userId, name: displayName, role: userRole);
+    _ref.read(currentUserProvider.notifier).state = user;
+    return (token: token, user: user);
+  }
+
   /// Clears secure storage, in-memory token, and current user; invalidates session. Caller should navigate to '/'.
   Future<void> logout() async {
     await _ref.read(authStorageProvider).clearToken();

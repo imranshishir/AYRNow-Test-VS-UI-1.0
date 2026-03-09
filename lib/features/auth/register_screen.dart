@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models/role.dart';
+import '../../core/state/providers.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -39,13 +40,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 700));
-    setState(() => _submitting = false);
+    String? error;
+    try {
+      final result = await ref.read(authControllerProvider).register(
+            email: _emailCtrl.text.trim(),
+            password: _passwordCtrl.text,
+            role: _selectedRole.name,
+            name: _nameCtrl.text.trim().isEmpty ? null : _nameCtrl.text.trim(),
+          );
+      if (!mounted) return;
+      if (result != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created successfully')),
+        );
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+        return;
+      }
+      error = 'Registration failed. Email may already be in use.';
+    } catch (_) {
+      error = 'Network error. Please try again.';
+    }
     if (!mounted) return;
+    setState(() => _submitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Account created successfully (demo)')),
+      SnackBar(content: Text(error)),
     );
-    Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
   }
 
   @override
@@ -122,7 +141,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<UserRole>(
-              value: _selectedRole,
+              initialValue: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Role',
                 prefixIcon: Icon(Icons.badge_outlined),
