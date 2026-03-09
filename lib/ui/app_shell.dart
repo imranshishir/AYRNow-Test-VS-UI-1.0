@@ -166,10 +166,14 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     return _QuickLinks(
       title: 'Profile',
-      items: [
-        _QuickLink('Switch role', Icons.swap_horiz_outlined, '/'),
+      items: const [
+        _QuickLink('Log out', Icons.logout_outlined, '/', isLogout: true),
         _QuickLink('Settings', Icons.settings_outlined, '/A-20'),
       ],
+      onLogout: () async {
+        await ref.read(authControllerProvider).logout();
+        if (mounted) Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+      },
     );
   }
 }
@@ -177,8 +181,9 @@ class _AppShellState extends ConsumerState<AppShell> {
 class _QuickLinks extends StatelessWidget {
   final String title;
   final List<_QuickLink> items;
+  final Future<void> Function()? onLogout;
 
-  const _QuickLinks({required this.title, required this.items});
+  const _QuickLinks({required this.title, required this.items, this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +198,13 @@ class _QuickLinks extends StatelessWidget {
               leading: Icon(item.icon),
               title: Text(item.label),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.pushNamed(context, item.route),
+              onTap: () async {
+                if (item.isLogout && onLogout != null) {
+                  await onLogout!();
+                } else {
+                  Navigator.pushNamed(context, item.route);
+                }
+              },
             ),
           ),
       ],
@@ -205,5 +216,6 @@ class _QuickLink {
   final String label;
   final IconData icon;
   final String route;
-  const _QuickLink(this.label, this.icon, this.route);
+  final bool isLogout;
+  const _QuickLink(this.label, this.icon, this.route, {this.isLogout = false});
 }

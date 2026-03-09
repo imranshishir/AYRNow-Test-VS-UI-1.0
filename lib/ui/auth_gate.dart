@@ -5,7 +5,7 @@ import '../core/state/providers.dart';
 import 'login_screen.dart';
 import 'app_shell.dart';
 
-/// Root gate: waits for [initialSessionProvider] (boot token + GET /v1/me), then shows
+/// Root gate: waits for [initialSessionProvider] (boot token + GET /api/v1/me), then shows
 /// loading | login | app. No blank screen; simple loading state until resolved.
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});

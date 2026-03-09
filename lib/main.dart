@@ -7,6 +7,7 @@ import 'ui/login_screen.dart';
 import 'navigation/routes.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const ProviderScope(child: AyrnowApp()));
 }
 

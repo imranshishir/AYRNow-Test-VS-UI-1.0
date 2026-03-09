@@ -14,6 +14,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   UserRole _role = UserRole.tenant;
   bool _loading = false;
@@ -22,14 +23,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void dispose() {
     _emailController.dispose();
+    _passwordController.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
+    final password = _passwordController.text;
     if (email.isEmpty) {
       setState(() => _error = 'Email is required');
+      return;
+    }
+    if (password.isEmpty) {
+      setState(() => _error = 'Password is required');
       return;
     }
     setState(() {
@@ -39,17 +46,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final result = await ref.read(authControllerProvider).login(
             email: email,
-            role: _role,
+            password: password,
             name: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
           );
       if (!mounted) return;
       if (result != null) {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        setState(() => _error = 'Login failed');
+        setState(() => _error = 'Login failed. Check email and password.');
       }
     } catch (e) {
-      if (mounted) setState(() => _error = 'Network error: $e');
+      if (mounted) setState(() => _error = 'Network error. Please try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -80,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           Text('Sign in', style: theme.textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
-            'Enter your email and role to continue.',
+            'Enter your email and password to sign in.',
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
@@ -97,6 +104,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 16),
           TextField(
+            controller: _passwordController,
+            decoration: const InputDecoration(
+              labelText: 'Password *',
+              hintText: '••••••••',
+              border: OutlineInputBorder(),
+            ),
+            obscureText: true,
+            autocorrect: false,
+            onChanged: (_) => setState(() => _error = null),
+          ),
+          const SizedBox(height: 16),
+          TextField(
             controller: _nameController,
             decoration: const InputDecoration(
               labelText: 'Name (optional)',
@@ -107,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<UserRole>(
-            value: _role,
+            initialValue: _role,
             decoration: const InputDecoration(
               labelText: 'Role',
               border: OutlineInputBorder(),
