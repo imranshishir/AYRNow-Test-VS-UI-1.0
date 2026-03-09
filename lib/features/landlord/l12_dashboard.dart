@@ -26,6 +26,14 @@ class LandlordDashboardScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Row(
             children: [
+              Expanded(child: _quickAction(context, 'My Properties', Icons.home_work_outlined, '/L-25')),
+              const SizedBox(width: 12),
+              Expanded(child: _quickAction(context, 'Add Property', Icons.add_home_outlined, '/L-20')),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
               Expanded(child: _quickAction(context, 'Rent Board', Icons.payments_outlined, '/L-23')),
               const SizedBox(width: 12),
               Expanded(child: _quickAction(context, 'Maintenance', Icons.build_outlined, '/L-30')),

@@ -12,6 +12,7 @@ import '../models/rent.dart';
 import '../models/ticket.dart';
 import '../models/job.dart';
 import '../models/approval.dart';
+import '../backend/dtos/property_dto.dart';
 import '../../features/community/models/community_models.dart';
 import '../../features/tenant_transfer/models/tenant_transfer_models.dart';
 import '../../features/household/models/household_models.dart';
@@ -119,6 +120,33 @@ class AuthController {
 /// Set by initialSessionProvider (restore) or AuthController.login. Cleared on logout.
 final currentUserProvider = StateProvider<AppUser>((ref) {
   return const AppUser(id: '', name: '', role: UserRole.tenant);
+});
+
+/// Increment to trigger refresh of landlord property list (e.g. after adding a property).
+final landlordPropertiesRefreshProvider = StateProvider<int>((ref) => 0);
+
+/// Landlord properties from GET /v1/properties. Refreshes when landlordPropertiesRefreshProvider changes.
+final landlordPropertiesProvider = FutureProvider<List<PropertyDto>>((ref) async {
+  ref.watch(landlordPropertiesRefreshProvider);
+  final token = ref.watch(authTokenProvider);
+  if (token == null || token.isEmpty) return [];
+  final baseUrl = await resolveApiBaseUrl();
+  final r = await http.get(
+    Uri.parse('$baseUrl/v1/properties'),
+    headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
+  ).timeout(const Duration(seconds: 15));
+  if (r.statusCode != 200) return [];
+  final list = jsonDecode(r.body);
+  if (list is! List) return [];
+  return list
+      .map((e) => e is Map ? PropertyDto(
+        id: (e['id'] ?? '').toString(),
+        accountId: (e['accountId'] ?? '').toString(),
+        name: (e['name'] as String?) ?? '',
+        address1: e['address'] as String?,
+      ) : null)
+      .whereType<PropertyDto>()
+      .toList();
 });
 
 final rentBoardProvider = FutureProvider<List<RentItem>>((ref) async {
