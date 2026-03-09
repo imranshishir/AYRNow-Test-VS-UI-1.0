@@ -4,6 +4,12 @@
 
 ---
 
+## Secret rotation requirement (one-time)
+
+**If you pulled or cloned this repo before the push-secret fix:** A Stripe Test API Secret Key was previously committed and has been removed from git history on branch `fix/push-secret-and-release-base`. **You must rotate that key in the Stripe Dashboard** (Developers → API keys → Roll key for the test secret). Use the new key only in local `backend/.env` or in CI/AWS secrets; never commit it. After rotation, push protection on GitHub should pass.
+
+---
+
 ## Backend (Spring Boot)
 
 | Variable | Required | Description | Example (dev) |
@@ -43,7 +49,9 @@ For **production builds**, set or inject production API base URL (e.g. https://a
 
 ## Checklist
 
-- [ ] backend/.env in .gitignore.
-- [ ] No Stripe keys or JWT secrets in repo history.
+- [x] backend/.env in backend/.gitignore and root .gitignore (done on fix/push-secret-and-release-base).
+- [ ] backend/.env is not tracked; history on release branch has no .env with secrets (history was rewritten).
+- [ ] Rotate any Stripe key that was ever committed (see "Secret rotation requirement" above).
+- [ ] No Stripe keys or JWT secrets in repo or current history.
 - [ ] Production API URL documented and used in release builds.
 - [ ] CI/CD uses secrets from GitHub Secrets or AWS, not from repo.

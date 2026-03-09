@@ -7,8 +7,8 @@
 
 ## 1. Current repo reality
 
-- **Release branch:** fix/restore-register-and-property-nav (~20 commits ahead of main).
-- **Push status:** Blocked by GitHub (Stripe secret in history, commit 1f440d0). Must resolve before pushing (see BRANCH_RECOVERY_PLAN.md).
+- **Release branch:** **fix/push-secret-and-release-base** (history cleaned; safe to push after you rotate Stripe Test Secret). Alternative base: fix/restore-register-and-property-nav (still has secret in history).
+- **Push status:** On **fix/push-secret-and-release-base**, backend/.env is untracked and removed from history. Rotate the exposed Stripe Test Secret Key in Dashboard, then push should pass (see ENVIRONMENT_VARIABLES.md).
 - **Stack:** Flutter (Riverpod) + Spring Boot 3.2 (Java 17). Backend active stack: controller package at /v1/*; api package excluded in build.gradle.
 - **Working:** Auth (login/register/me to /v1), property list (GET /v1/properties), invite create (POST /v1/units/:id/invites), payments (v1/payments intent/mine), Skip login (dev) for testing. Port 8081 for iOS/Android.
 - **Not working / gaps:** Add Property (no POST /v1/properties); invite accept (no backend endpoint); some Flutter calls still /api/v1 (l20, l21, l22, invite_api); notifications mock-only; no production API URL in release build.
@@ -17,13 +17,13 @@
 
 ## 2. Recommended release branch
 
-**fix/restore-register-and-property-nav** (optionally renamed to release/mvp-ship after push unblock). All stabilization and MVP work should branch from and merge into this branch until release.
+**fix/push-secret-and-release-base** (recommended; history cleaned). Optionally rename to release/mvp-ship. All stabilization and MVP work should branch from and merge into this branch until release.
 
 ---
 
 ## 3. Top blockers
 
-1. **Push block:** Stripe secret in repo history; resolve via GitHub allow, history rewrite, or new branch without .env.
+1. ~~**Push block:**~~ Resolved on fix/push-secret-and-release-base (history rewritten). **You must rotate Stripe Test Secret** in Dashboard before push.
 2. **Add Property:** Backend POST /v1/properties missing; Flutter l20 uses /api/v1 → change to /v1 and add backend create.
 3. **Invite accept:** Backend endpoint missing; Flutter to use /v1 when available.
 4. **Notifications:** Wire app to GET /v1/notifications; deep links if required.
