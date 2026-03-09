@@ -1,12 +1,16 @@
 package com.ayrnow.controller;
 
+import com.ayrnow.dto.CreatePropertyRequest;
 import com.ayrnow.dto.PropertyResponse;
 import com.ayrnow.dto.UnitResponse;
 import com.ayrnow.repository.UserRepository;
 import com.ayrnow.service.PropertyService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +31,15 @@ public class PropertyController {
         UUID userId = UUID.fromString(auth.getName());
         String role = userRepository.findById(userId).map(u -> u.getRole()).orElse("tenant");
         return propertyService.listProperties(userId, role);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<PropertyResponse> create(@Valid @RequestBody CreatePropertyRequest request, Authentication auth) {
+        UUID userId = UUID.fromString(auth.getName());
+        String role = userRepository.findById(userId).map(u -> u.getRole()).orElse("tenant");
+        PropertyResponse created = propertyService.createProperty(userId, role, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/{propertyId}/units")
