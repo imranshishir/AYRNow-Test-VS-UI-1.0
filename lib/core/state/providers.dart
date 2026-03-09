@@ -169,6 +169,38 @@ final currentUserProvider = StateProvider<AppUser>((ref) {
 /// Increment to trigger refresh of landlord property list (e.g. after adding a property).
 final landlordPropertiesRefreshProvider = StateProvider<int>((ref) => 0);
 
+/// Minimal invite repo for unit invites: POST /v1/units/:id/invites with { email }. Returns response map (token, id, etc.).
+final inviteRepoProvider = Provider<_InviteRepo>((ref) => _InviteRepo(ref));
+
+class _InviteRepo {
+  _InviteRepo(this._ref);
+  final Ref _ref;
+
+  Future<Map<String, dynamic>> createUnitInvite({
+    required String unitId,
+    required String email,
+  }) async {
+    final token = _ref.read(authTokenProvider);
+    if (token == null || token.isEmpty) throw Exception('Not logged in');
+    final baseUrl = await resolveApiBaseUrl();
+    final uri = Uri.parse('$baseUrl/v1/units/$unitId/invites');
+    final res = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'email': email}),
+        )
+        .timeout(const Duration(seconds: 15));
+    if (res.statusCode < 200 || res.statusCode >= 300) throw Exception(res.body);
+    final map = jsonDecode(res.body);
+    return Map<String, dynamic>.from(map as Map);
+  }
+}
+
 /// Landlord properties from GET /v1/properties. Refreshes when landlordPropertiesRefreshProvider changes.
 final landlordPropertiesProvider = FutureProvider<List<PropertyDto>>((ref) async {
   ref.watch(landlordPropertiesRefreshProvider);
