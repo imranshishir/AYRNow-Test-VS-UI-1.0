@@ -1,16 +1,21 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_base_url_stub.dart' if (dart.library.io) 'api_base_url_io.dart' as platform;
+import 'api_config.dart';
 
 const String _keyApiBaseUrlOverride = 'apiBaseUrlOverride';
 
-/// Resolves the API base URL: stored dev override, else platform default (e.g. 10.0.2.2 for Android emulator, 127.0.0.1 for iOS Simulator).
+/// Resolves the API base URL: stored dev override, else in release mode production URL, else platform default (e.g. 10.0.2.2 for Android emulator).
 Future<String> resolveApiBaseUrl() async {
   final prefs = await SharedPreferences.getInstance();
   final override = prefs.getString(_keyApiBaseUrlOverride);
   if (override != null && override.trim().isNotEmpty) {
     final url = override.trim();
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  }
+  if (kReleaseMode) {
+    return productionApiBaseUrl;
   }
   return platform.getPlatformDefaultBaseUrl();
 }

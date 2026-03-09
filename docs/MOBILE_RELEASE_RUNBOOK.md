@@ -30,7 +30,7 @@ flutter build apk --release
 # or: flutter build appbundle --release   # for Play Store
 ```
 
-- Signing: Configure android/app/build.gradle with signingConfigs (keystore path, storePassword, keyPassword from env or secure storage). Do not commit keystore or passwords.
+- Signing: Create `android/key.properties` (gitignored) with `storeFile`, `storePassword`, `keyAlias`, `keyPassword`. Point `storeFile` to your upload keystore path (e.g. `upload-keystore.jks`). android/app/build.gradle.kts reads this for release signing when the file exists. Do not commit keystore or key.properties.
 - Output: build/app/outputs/flutter-apk/app-release.apk or build/app/outputs/bundle/release/app-release.aab.
 
 ---

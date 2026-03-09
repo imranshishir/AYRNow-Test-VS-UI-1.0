@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -176,6 +177,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ],
           ),
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () {
+                ref.read(authTokenProvider.notifier).state = 'dev-bypass';
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+              icon: const Icon(Icons.developer_mode_outlined),
+              label: const Text('Skip login (dev) – test as Landlord'),
+            ),
+          ],
         ],
       ),
     );
