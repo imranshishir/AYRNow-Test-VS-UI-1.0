@@ -23,8 +23,12 @@
 | STRIPE_SECRET_KEY | For payments | Stripe secret key | sk_test_... (test) / sk_live_... (prod) |
 | STRIPE_WEBHOOK_SECRET | For webhooks | Stripe webhook signing secret | whsec_... |
 | CORS_ALLOWED_ORIGINS | Yes (prod/staging) | CORS origins; must not be * in prod | https://app.ayrnow.com (comma-separated if multiple) |
+| APP_BASE_URL | Yes (email auth) | Base URL for verify/reset links in emails (HTTPS in prod) | https://app.ayrnow.com |
+| AWS_REGION | Yes (SES) | AWS region for SES | us-east-1 |
+| SES_FROM_EMAIL | Yes (SES) | Verified sender email (SES sandbox or production) | noreply@ayrnow.com |
+| SES_FROM_NAME | No | Display name in From header | AYRNOW |
 
-**Local:** Use backend/.env (ensure .env is in .gitignore) or export before run_local.sh.
+**Local:** Use backend/.env (ensure .env is in .gitignore) or export before run_local.sh. For local email testing without SES, leave SES_FROM_EMAIL empty; verification/reset emails will not be sent but registration and reset flows still work (user can use a test token or run backend with SES configured).
 
 ---
 

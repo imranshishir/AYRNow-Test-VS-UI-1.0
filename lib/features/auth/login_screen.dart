@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/state/providers.dart';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -14,6 +16,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   bool _submitting = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -24,11 +27,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    setState(() => _submitting = false);
-    if (!mounted) return;
-    Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final result = await ref.read(authControllerProvider).login(
+            email: _emailCtrl.text.trim(),
+            password: _passwordCtrl.text,
+          );
+      if (!mounted) return;
+      if (result != null) {
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
+        return;
+      }
+      setState(() => _error = 'Login failed. Check email and password.');
+    } catch (e) {
+      if (!mounted) return;
+      final msg = e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'Login failed.';
+      setState(() => _error = msg);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -91,6 +111,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       return null;
                     },
                   ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Card(
+                      color: theme.colorScheme.errorContainer,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(_error!)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,

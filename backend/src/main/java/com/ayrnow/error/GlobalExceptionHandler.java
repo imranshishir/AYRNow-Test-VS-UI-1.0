@@ -1,6 +1,9 @@
 package com.ayrnow.error;
 
 import com.ayrnow.dto.ApiErrorResponse;
+import com.ayrnow.error.AuthException;
+import com.ayrnow.error.ConflictException;
+import com.ayrnow.error.RateLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -34,6 +37,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse("not_found", ex.getMessage(), traceId()));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse("conflict", ex.getMessage(), traceId()));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiErrorResponse("access_denied", ex.getMessage(), traceId()));
@@ -47,6 +55,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiErrorResponse> handleAuth(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse("unauthorized", ex.getMessage(), traceId()));
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthException(AuthException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse("auth_error", ex.getMessage(), traceId()));
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimit(RateLimitException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(new ApiErrorResponse("rate_limit", ex.getMessage(), traceId()));
     }
 
     @ExceptionHandler(Exception.class)

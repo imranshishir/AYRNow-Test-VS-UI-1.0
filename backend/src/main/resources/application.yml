@@ -42,3 +42,11 @@ ayrnow:
   cors:
     # Local default allows all; set this in AWS to your real domains.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+  # Base URL for email links (verify, reset). Use HTTPS in production.
+  app-base-url: ${APP_BASE_URL:http://localhost:8080}
+
+# SES (env only; no secrets in repo)
+ses:
+  region: ${AWS_REGION:us-east-1}
+  from-email: ${SES_FROM_EMAIL:}
+  from-name: ${SES_FROM_NAME:AYRNOW}

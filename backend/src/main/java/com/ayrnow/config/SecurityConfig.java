@@ -33,7 +33,8 @@ public class SecurityConfig {
                 .csrf(c -> c.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/v1/auth/login", "/v1/auth/refresh", "/v1/auth/register").permitAll()
+                        .requestMatchers("/v1/auth/login", "/v1/auth/refresh", "/v1/auth/register",
+                        "/v1/auth/verify-email", "/v1/auth/forgot-password", "/v1/auth/reset-password").permitAll()
                         .requestMatchers("/v1/webhooks/**").permitAll()
                                 .requestMatchers("/api/v1/health", "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/v1/**").authenticated()

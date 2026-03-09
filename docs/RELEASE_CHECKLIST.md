@@ -16,7 +16,7 @@ Use this before tagging a release or merging to main. No Docker in local workflo
 
 ## MVP slices
 
-- [ ] **Auth:** Login, Register, session restore work; loading/error/success UI; minimal tests.
+- [ ] **Auth:** Login, Register, session restore work; email verification and forgot/reset password (SES); loading/error/success UI; minimal tests.
 - [ ] **Properties/Units/Leases:** List, Add Property (POST /v1/properties), detail, units list; loading/empty/error UI.
 - [ ] **Invites/Onboarding:** Create invite, Accept invite (backend + Flutter); UI states.
 - [ ] **Stripe Payments:** Intent + list wired; keys from env; loading/error/success UI.
@@ -29,6 +29,7 @@ Use this before tagging a release or merging to main. No Docker in local workflo
 - [ ] All Flutter API calls use /v1 (no /api/v1 for active backend).
 - [ ] Production API base URL from env/config (no hardcoded localhost in release build).
 - [ ] ENVIRONMENT_VARIABLES.md updated; no secrets in repo.
+- [ ] Email auth: SES env vars set (AWS_REGION, SES_FROM_EMAIL, SES_FROM_NAME); APP_BASE_URL is HTTPS in prod (see EMAIL_AUTH_RUNBOOK.md).
 
 ---
 

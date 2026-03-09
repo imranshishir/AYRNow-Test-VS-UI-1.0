@@ -50,10 +50,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           );
       if (!mounted) return;
       if (result != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created successfully')),
+        setState(() => _submitting = false);
+        Navigator.pushNamed(
+          context,
+          '/verify-email',
+          arguments: {'email': _emailCtrl.text.trim(), 'message': result.message},
         );
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
         return;
       }
       error = 'Registration failed. Email may already be in use.';

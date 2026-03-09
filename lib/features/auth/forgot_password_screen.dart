@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'auth_email_api.dart';
+
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -14,6 +16,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailCtrl = TextEditingController();
   bool _submitted = false;
   bool _submitting = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -23,12 +26,30 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 600));
     setState(() {
-      _submitting = false;
-      _submitted = true;
+      _submitting = true;
+      _error = null;
     });
+    try {
+      await forgotPassword(_emailCtrl.text.trim());
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _submitted = true;
+      });
+    } on AuthEmailApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = 'Network error. Please try again.';
+      });
+    }
   }
 
   @override
@@ -54,6 +75,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             'Enter the email associated with your account and we\'ll send a reset link.',
             style: theme.textTheme.bodyLarge,
           ),
+          if (_error != null) ...[
+            const SizedBox(height: 16),
+            Card(
+              color: theme.colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_error!)),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           TextFormField(
             controller: _emailCtrl,

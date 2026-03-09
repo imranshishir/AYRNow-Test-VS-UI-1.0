@@ -73,6 +73,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql:10.22.0'
     implementation 'com.stripe:stripe-java:24.6.0'
     implementation 'com.auth0:java-jwt:4.4.0'
+    implementation 'software.amazon.awssdk:ses:2.21.0'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'com.h2database:h2'

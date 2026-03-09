@@ -66,7 +66,7 @@ class AuthController {
   final Ref _ref;
 
   /// Calls POST /v1/auth/login with email and password; saves token; sets authTokenProvider and currentUserProvider.
-  /// Returns (token, user) on success; null on failure. Role comes from backend response.
+  /// Returns (token, user) on success; null on failure. Throws Exception with backend message on 4xx (e.g. email not verified).
   Future<({String token, AppUser user})?> login({
     required String email,
     required String password,
@@ -85,7 +85,15 @@ class AuthController {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 15));
-    if (response.statusCode == 401) return null;
+    if (response.statusCode >= 400 && response.statusCode < 500) {
+      try {
+        final d = jsonDecode(response.body);
+        if (d is Map && d['message'] != null) throw Exception(d['message'] as String);
+      } catch (e) {
+        if (e is Exception) rethrow;
+      }
+      throw Exception('Invalid credentials');
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) return null;
     Map<String, dynamic>? data;
     try {
@@ -108,8 +116,8 @@ class AuthController {
     return (token: token, user: user);
   }
 
-  /// Calls POST /v1/auth/register; on success saves token and sets session (same as login). Returns (token, user) or null.
-  Future<({String token, AppUser user})?> register({
+  /// Calls POST /v1/auth/register. On 201 returns (message, emailSent); user must verify email before login.
+  Future<({String message, bool emailSent})?> register({
     required String email,
     required String password,
     required String role,
@@ -130,26 +138,16 @@ class AuthController {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 15));
-    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    if (response.statusCode != 201) return null;
     Map<String, dynamic>? data;
     try {
       data = jsonDecode(response.body) as Map<String, dynamic>?;
     } catch (_) {
       return null;
     }
-    final token = data?['accessToken'] as String? ?? data?['token'] as String?;
-    final userId = (data?['userId'] ?? data?['id'])?.toString() ?? '';
-    if (token == null || token.isEmpty) return null;
-    await _ref.read(authStorageProvider).writeToken(token);
-    _ref.read(authTokenProvider.notifier).state = token;
-    final roleStr = data?['role'] as String? ?? role;
-    final userRole = UserRole.values.asNameMap()[roleStr] ?? UserRole.tenant;
-    final displayName = (name != null && name.trim().isNotEmpty)
-        ? name.trim()
-        : (data?['email'] as String? ?? email).split('@').first;
-    final user = AppUser(id: userId, name: displayName, role: userRole);
-    _ref.read(currentUserProvider.notifier).state = user;
-    return (token: token, user: user);
+    final message = data?['message'] as String? ?? 'Check your email to verify your account';
+    final emailSent = data?['emailSent'] as bool? ?? true;
+    return (message: message, emailSent: emailSent);
   }
 
   /// Clears secure storage, in-memory token, and current user; invalidates session. Caller should navigate to '/'.
