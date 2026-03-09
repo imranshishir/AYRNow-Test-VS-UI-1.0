@@ -51,6 +51,11 @@ public class StartupValidator implements ApplicationRunner {
             errors.add("STRIPE_SECRET_KEY must be set for staging/prod");
         }
 
+        String corsOrigins = env.getProperty("ayrnow.cors.allowed-origins");
+        if (corsOrigins == null || corsOrigins.isBlank() || "*".equals(corsOrigins.trim())) {
+            errors.add("CORS_ALLOWED_ORIGINS must be set and must not be * for staging/prod");
+        }
+
         if (!errors.isEmpty()) {
             throw new IllegalStateException(
                     "Startup validation failed: " + String.join("; ", errors));

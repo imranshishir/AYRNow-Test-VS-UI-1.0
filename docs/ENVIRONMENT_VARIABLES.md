@@ -22,7 +22,7 @@
 | JWT_SECRET | Yes | Min 32 chars for HMAC | — |
 | STRIPE_SECRET_KEY | For payments | Stripe secret key | sk_test_... (test) / sk_live_... (prod) |
 | STRIPE_WEBHOOK_SECRET | For webhooks | Stripe webhook signing secret | whsec_... |
-| ayrnow.cors.allowed-origins | No | CORS origins | * or https://app.ayrnow.com |
+| CORS_ALLOWED_ORIGINS | Yes (prod/staging) | CORS origins; must not be * in prod | https://app.ayrnow.com (comma-separated if multiple) |
 
 **Local:** Use backend/.env (ensure .env is in .gitignore) or export before run_local.sh.
 

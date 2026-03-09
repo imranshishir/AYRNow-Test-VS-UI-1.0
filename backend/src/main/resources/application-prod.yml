@@ -1,6 +1,6 @@
 # Phase B13: Production environment
 # Required env: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
-#               JWT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+#               JWT_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CORS_ALLOWED_ORIGINS
 
 spring:
   datasource:
@@ -19,6 +19,11 @@ logging:
     org.springframework.security: WARN
     org.hibernate: WARN
 
+# JwtProperties (prefix jwt) must get prod secret; same JWT_SECRET as auth.jwt for StartupValidator
+jwt:
+  secret: ${JWT_SECRET}
+  expirationMinutes: ${JWT_ACCESS_MINUTES:1440}
+
 auth:
   dev-headers-enabled: false
   jwt:
@@ -26,6 +31,11 @@ auth:
     access-minutes: ${JWT_ACCESS_MINUTES:15}
   refresh:
     days: ${JWT_REFRESH_DAYS:30}
+
+# CORS: no default in prod; must set CORS_ALLOWED_ORIGINS (e.g. https://app.ayrnow.com)
+ayrnow:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY}
