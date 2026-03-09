@@ -162,6 +162,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             label: Text(_loading ? 'Signing in…' : 'Sign in'),
             style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
           ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Don't have an account? ",
+                style: theme.textTheme.bodyMedium,
+              ),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/register'),
+                child: const Text('Register'),
+              ),
+            ],
+          ),
         ],
       ),
     );
