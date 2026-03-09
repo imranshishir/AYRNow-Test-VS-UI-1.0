@@ -43,6 +43,8 @@ import '../features/investor/i12_portfolio_summary.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
+import '../features/auth/verify_email_screen.dart';
+import '../features/auth/reset_password_screen.dart';
 // Common
 import '../features/common/profile_screen.dart';
 import '../features/common/notifications_screen.dart';
@@ -65,10 +67,11 @@ Map<String, WidgetBuilder> buildRoutes() {
   final routes = <String, WidgetBuilder>{};
 
 
-  // --- Auth ---
-  routes['/login'] = (_) => const LoginScreen();
+  // --- Auth --- (do not set /login here; main.dart owns core /login with ui/login_screen)
   routes['/register'] = (_) => const RegisterScreen();
   routes['/forgot-password'] = (_) => const ForgotPasswordScreen();
+  routes['/verify-email'] = (_) => const VerifyEmailScreen();
+  routes['/reset-password'] = (_) => const ResetPasswordScreen();
   routes['/L-01'] = (_) => const LoginScreen();
   routes['/L-02'] = (_) => const RegisterScreen();
   routes['/T-01'] = (_) => const LoginScreen();
