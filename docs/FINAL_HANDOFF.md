@@ -11,7 +11,7 @@
 - **Push status:** On **fix/push-secret-and-release-base**, backend/.env is untracked and removed from history. Rotate the exposed Stripe Test Secret Key in Dashboard, then push should pass (see ENVIRONMENT_VARIABLES.md).
 - **Stack:** Flutter (Riverpod) + Spring Boot 3.2 (Java 17). Backend active stack: controller package at /v1/*; api package excluded in build.gradle.
 - **Working:** Auth (login/register/me to /v1), property list (GET /v1/properties), invite create (POST /v1/units/:id/invites), payments (v1/payments intent/mine), Skip login (dev) for testing. Port 8081 for iOS/Android.
-- **Not working / gaps:** Add Property (no POST /v1/properties); invite accept (no backend endpoint); some Flutter calls still /api/v1 (l20, l21, l22, invite_api); notifications mock-only; no production API URL in release build.
+- **Fixed on release branches:** Add Property (POST /v1/properties on fix/property-create-and-v1-paths); invite accept (POST /v1/invites/accept/{token} on fix/invite-accept-and-notifications); all Flutter calls use /v1; notifications wired to GET /v1/notifications; production API URL in release (fix/release-config-and-store-readiness); Skip login gated by kDebugMode; Android applicationId com.ayrnow.app and release signing from key.properties.
 
 ---
 
@@ -24,10 +24,10 @@
 ## 3. Top blockers
 
 1. ~~**Push block:**~~ Resolved on fix/push-secret-and-release-base (history rewritten). **You must rotate Stripe Test Secret** in Dashboard before push.
-2. **Add Property:** Backend POST /v1/properties missing; Flutter l20 uses /api/v1 → change to /v1 and add backend create.
-3. **Invite accept:** Backend endpoint missing; Flutter to use /v1 when available.
-4. **Notifications:** Wire app to GET /v1/notifications; deep links if required.
-5. **Secrets and env:** All secrets from env; document in ENVIRONMENT_VARIABLES.md; production API URL for mobile release.
+2. ~~**Add Property:**~~ Done on fix/property-create-and-v1-paths.
+3. ~~**Invite accept:**~~ Done on fix/invite-accept-and-notifications.
+4. ~~**Notifications:**~~ Done on fix/invite-accept-and-notifications.
+5. ~~**Secrets and env:**~~ Production API URL set in release; ENVIRONMENT_VARIABLES.md and runbooks updated.
 
 ---
 
