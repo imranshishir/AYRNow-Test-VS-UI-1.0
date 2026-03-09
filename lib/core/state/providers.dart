@@ -25,7 +25,7 @@ final bootTokenProvider = FutureProvider<String?>((ref) async {
   return ref.read(authStorageProvider).readToken();
 });
 
-/// Resolves once at startup: restores token from storage, validates with GET /v1/me.
+/// Resolves once at startup: restores token from storage, validates with GET /api/v1/me.
 /// Returns [AppUser] if valid, null otherwise (and clears storage on failure).
 final initialSessionProvider = FutureProvider<AppUser?>((ref) async {
   final token = await ref.watch(bootTokenProvider.future);
@@ -38,9 +38,10 @@ final initialSessionProvider = FutureProvider<AppUser?>((ref) async {
     ).timeout(const Duration(seconds: 10));
     if (r.statusCode >= 200 && r.statusCode < 300) {
       final d = jsonDecode(r.body) as Map<String, dynamic>?;
-      final id = d?['id'] ?? d?['userId'] ?? '';
-      final name = d?['name'] ?? (d?['email'] as String?)?.split('@').first ?? '';
-      final roleStr = d?['role'] as String? ?? 'tenant';
+      final id = (d?['userId'] ?? d?['id'])?.toString() ?? '';
+      final userInfo = d?['user'] as Map<String, dynamic>?;
+      final name = userInfo?['displayName'] as String? ?? userInfo?['name'] as String? ?? (d?['name'] as String?) ?? (userInfo?['email'] as String?)?.split('@').first ?? (d?['email'] as String?)?.split('@').first ?? '';
+      final roleStr = d?['role'] as String? ?? userInfo?['role'] as String? ?? 'tenant';
       final role = UserRole.values.asNameMap()[roleStr] ?? UserRole.tenant;
       ref.read(authTokenProvider.notifier).state = token;
       ref.read(currentUserProvider.notifier).state = AppUser(id: id, name: name, role: role);
@@ -63,19 +64,18 @@ class AuthController {
   AuthController(this._ref);
   final Ref _ref;
 
-  /// Calls POST /v1/auth/login, saves token to storage, sets authTokenProvider and currentUserProvider.
-  /// Returns (token, user) on success; throws or returns null on failure.
+  /// Calls POST /api/v1/auth/login with email and password; saves token; sets authTokenProvider and currentUserProvider.
+  /// Returns (token, user) on success; null on failure. Role comes from backend response.
   Future<({String token, AppUser user})?> login({
     required String email,
-    required UserRole role,
+    required String password,
     String? name,
   }) async {
     final baseUrl = await resolveApiBaseUrl();
     final uri = Uri.parse('$baseUrl/v1/auth/login');
     final body = <String, dynamic>{
       'email': email,
-      'role': role.name,
-      if (name != null && name.isNotEmpty) 'name': name,
+      'password': password,
     };
     final response = await http
         .post(
@@ -84,6 +84,7 @@ class AuthController {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 15));
+    if (response.statusCode == 401) return null;
     if (response.statusCode < 200 || response.statusCode >= 300) return null;
     Map<String, dynamic>? data;
     try {
@@ -91,11 +92,13 @@ class AuthController {
     } catch (_) {
       return null;
     }
-    final token = data?['token'] as String?;
-    final userId = data?['userId'] as String? ?? '';
+    final token = data?['accessToken'] as String? ?? data?['token'] as String?;
+    final userId = (data?['userId'] ?? data?['id'])?.toString() ?? '';
     if (token == null || token.isEmpty) return null;
     await _ref.read(authStorageProvider).writeToken(token);
     _ref.read(authTokenProvider.notifier).state = token;
+    final roleStr = data?['role'] as String? ?? 'tenant';
+    final role = UserRole.values.asNameMap()[roleStr] ?? UserRole.tenant;
     final displayName = (name != null && name.isNotEmpty)
         ? name
         : (data?['email'] as String? ?? email).split('@').first;
@@ -104,15 +107,18 @@ class AuthController {
     return (token: token, user: user);
   }
 
-  /// Clears secure storage and in-memory token. Caller should navigate to login.
+  /// Clears secure storage, in-memory token, and current user; invalidates session. Caller should navigate to '/'.
   Future<void> logout() async {
     await _ref.read(authStorageProvider).clearToken();
     _ref.read(authTokenProvider.notifier).state = null;
+    _ref.read(currentUserProvider.notifier).state = const AppUser(id: '', name: '', role: UserRole.tenant);
+    _ref.invalidate(initialSessionProvider);
   }
 }
 
+/// Set by initialSessionProvider (restore) or AuthController.login. Cleared on logout.
 final currentUserProvider = StateProvider<AppUser>((ref) {
-  return const AppUser(id: 'u1', name: 'Demo User', role: UserRole.landlord);
+  return const AppUser(id: '', name: '', role: UserRole.tenant);
 });
 
 final rentBoardProvider = FutureProvider<List<RentItem>>((ref) async {
