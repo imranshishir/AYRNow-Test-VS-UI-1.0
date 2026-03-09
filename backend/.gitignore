@@ -5,3 +5,8 @@ target/
 .idea/
 *.iml
 *.log
+
+# Local env and secrets (never commit)
+.env
+.env.local
+.env.*.local
