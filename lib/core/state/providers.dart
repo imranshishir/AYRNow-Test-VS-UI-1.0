@@ -16,6 +16,7 @@ import '../backend/dtos/property_dto.dart';
 import '../../features/community/models/community_models.dart';
 import '../../features/tenant_transfer/models/tenant_transfer_models.dart';
 import '../../features/household/models/household_models.dart';
+import '../../features/lease_onboarding/lease_onboarding_api.dart';
 
 final reposProvider = Provider<MockRepos>((ref) => MockRepos());
 
@@ -94,16 +95,21 @@ class AuthController {
       }
       throw Exception('Invalid credentials');
     }
-    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      // Non-4xx failures (5xx, etc.) are treated as server errors so UI can surface a clear message.
+      throw Exception('Login failed due to a server error. Please try again.');
+    }
     Map<String, dynamic>? data;
     try {
       data = jsonDecode(response.body) as Map<String, dynamic>?;
     } catch (_) {
-      return null;
+      throw Exception('Login failed due to an unexpected response from the server.');
     }
     final token = data?['accessToken'] as String? ?? data?['token'] as String?;
     final userId = (data?['userId'] ?? data?['id'])?.toString() ?? '';
-    if (token == null || token.isEmpty) return null;
+    if (token == null || token.isEmpty) {
+      throw Exception('Login failed: missing token in server response.');
+    }
     await _ref.read(authStorageProvider).writeToken(token);
     _ref.read(authTokenProvider.notifier).state = token;
     final roleStr = data?['role'] as String? ?? 'tenant';
@@ -138,12 +144,26 @@ class AuthController {
           body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 15));
-    if (response.statusCode != 201) return null;
+    if (response.statusCode >= 400 && response.statusCode < 500) {
+      // Surface backend validation / duplicate email messages when present.
+      try {
+        final d = jsonDecode(response.body);
+        if (d is Map && d['message'] != null) {
+          throw Exception(d['message'] as String);
+        }
+      } catch (e) {
+        if (e is Exception) rethrow;
+      }
+      throw Exception('Registration failed. Email may already be in use.');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Registration failed due to a server error. Please try again.');
+    }
     Map<String, dynamic>? data;
     try {
       data = jsonDecode(response.body) as Map<String, dynamic>?;
     } catch (_) {
-      return null;
+      throw Exception('Registration failed due to an unexpected response from the server.');
     }
     final message = data?['message'] as String? ?? 'Check your email to verify your account';
     final emailSent = data?['emailSent'] as bool? ?? true;
@@ -221,6 +241,12 @@ final landlordPropertiesProvider = FutureProvider<List<PropertyDto>>((ref) async
       ) : null)
       .whereType<PropertyDto>()
       .toList();
+});
+
+/// Lease onboarding API client for landlord/tenant lease packets.
+final leaseOnboardingApiProvider = Provider<LeaseOnboardingApi>((ref) {
+  final token = ref.watch(authTokenProvider);
+  return LeaseOnboardingApi(() => token);
 });
 
 final rentBoardProvider = FutureProvider<List<RentItem>>((ref) async {

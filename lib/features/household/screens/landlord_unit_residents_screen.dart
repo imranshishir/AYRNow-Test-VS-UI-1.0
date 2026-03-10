@@ -19,6 +19,13 @@ class LandlordUnitResidentsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(unitLabel != null ? 'Residents: $unitLabel' : 'Residents & Family'),
+        actions: [
+          IconButton(
+            onPressed: () => _openLeasePacketFlow(context),
+            icon: const Icon(Icons.description_outlined),
+            tooltip: 'Prepare lease packet',
+          ),
+        ],
       ),
       body: membersAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -81,6 +88,17 @@ class LandlordUnitResidentsScreen extends ConsumerWidget {
       arguments: {'unitId': unitId, 'isLandlord': true},
     );
     ref.invalidate(householdMembersProvider);
+  }
+
+  void _openLeasePacketFlow(BuildContext context) {
+    Navigator.pushNamed(
+      context,
+      '/L-26',
+      arguments: {
+        'unitId': unitId,
+        'unitLabel': unitLabel,
+      },
+    );
   }
 }
 

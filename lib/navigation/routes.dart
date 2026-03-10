@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../ui/spec_screen.dart';
 import '../ui/spec_index_screen.dart';
+import '../ui/debug_ui_menu.dart';
 // Landlord
 import '../features/landlord/l12_dashboard.dart';
 import '../features/landlord/l20_add_property.dart';
@@ -61,6 +62,7 @@ import '../features/tenant_transfer/screens/landlord_transfer_inbox_screen.dart'
 import '../features/household/screens/tenant_household_screen.dart';
 import '../features/household/screens/invite_household_member_screen.dart';
 import '../features/household/screens/landlord_unit_residents_screen.dart';
+import '../features/lease_onboarding/screens/landlord_lease_packet_screens.dart';
 import '../features/invite_accept/invite_accept_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
@@ -85,6 +87,9 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/A-01'] = (_) => const LoginScreen();
   routes['/A-02'] = (_) => const RegisterScreen();
 
+  // --- Debug / UI test (reachable only from kDebugMode login screen) ---
+  routes['/debug-ui'] = (_) => const DebugUiMenuScreen();
+
   // --- Common ---
   routes['/profile'] = (_) => const ProfileScreen();
   routes['/I-10'] = (_) => const NotificationsScreen();
@@ -108,6 +113,34 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/L-23'] = (_) => const RentBoardScreen();
   routes['/L-24'] = (_) => const UnitDetailScreen();
   routes['/L-25'] = (_) => const PropertyListScreen();
+  routes['/L-26'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final unitId = map['unitId']?.toString() ?? '';
+    final unitLabel = map['unitLabel']?.toString();
+    return LeasePacketCreateScreen(
+      unitId: unitId,
+      unitLabel: unitLabel,
+    );
+  };
+  routes['/L-27'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final packetId = map['packetId']?.toString() ?? '';
+    return LeasePacketSuggestionReviewScreen(packetId: packetId);
+  };
+  routes['/L-28'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final packetId = map['packetId']?.toString() ?? '';
+    return LeasePacketDocumentsScreen(packetId: packetId);
+  };
+  routes['/L-29'] = (context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final map = args is Map ? args : const <String, dynamic>{};
+    final packetId = map['packetId']?.toString() ?? '';
+    return LeasePacketSendInviteScreen(packetId: packetId);
+  };
   routes['/L-30'] = (_) => const MaintenanceInboxScreen();
   routes['/L-31'] = (_) => const TicketDetailScreen();
   routes['/L-33'] = (_) => const LandlordCreateTicketScreen();
