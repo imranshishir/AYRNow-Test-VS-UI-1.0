@@ -8,10 +8,6 @@ import '../backend/api_base_url.dart';
 import '../api/api_client.dart';
 import '../api/payments_api.dart';
 import '../repos/mock_repos.dart';
-import '../repos/property_repo.dart';
-import '../repos/real_property_repo.dart';
-import '../repos/invite_repo.dart';
-import '../repos/real_invite_repo.dart';
 import '../models/role.dart';
 import '../models/user.dart';
 import '../models/rent.dart';
@@ -33,14 +29,6 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
 final paymentsApiProvider = Provider<PaymentsApi>((ref) {
   return PaymentsApi(ref.read(apiClientProvider));
-});
-
-final propertyRepoProvider = Provider<PropertyRepo>((ref) {
-  return RealPropertyRepo(ref.read(apiClientProvider));
-});
-
-final inviteRepoProvider = Provider<InviteRepo>((ref) {
-  return RealInviteRepo(ref.read(apiClientProvider));
 });
 
 final authStorageProvider = Provider<AuthStorage>((ref) => AuthStorage());
@@ -409,12 +397,7 @@ class HouseholdController {
 }
 
 /// Landlord properties list for L-25.
-final propertiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  return ref.read(propertyRepoProvider).listProperties();
-});
-
-/// Units for a property (L-22 and L-21 refresh).
-final unitsProvider =
-    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, propertyId) async {
-  return ref.read(propertyRepoProvider).listUnits(propertyId);
-});
+///
+/// NOTE: New API-backed repository abstractions were prototyped but not finalized.
+/// For now we expose only the HTTP-backed landlordPropertiesProvider above and keep
+/// the older L-25 helpers out of the core providers to avoid partial wiring.

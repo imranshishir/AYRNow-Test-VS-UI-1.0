@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../ui/spec_screen.dart';
 import '../ui/spec_index_screen.dart';
-import '../ui/debug_ui_menu.dart';
 // Landlord
 import '../features/landlord/l12_dashboard.dart';
 import '../features/landlord/l20_add_property.dart';
@@ -10,36 +9,14 @@ import '../features/landlord/l22_property_detail.dart';
 import '../features/landlord/l23_rent_board.dart';
 import '../features/landlord/l25_property_list.dart';
 import '../features/landlord/l30_maintenance_inbox.dart';
-import '../features/landlord/l31_ticket_detail.dart';
-import '../features/landlord/l33_create_ticket.dart';
-import '../features/landlord/l35_assign_contractor.dart';
-import '../features/landlord/l38_settings.dart';
 import '../features/landlord/screens/unit_detail_screen.dart';
 // Tenant
 import '../features/tenant/t06_dashboard.dart';
-import '../features/tenant/t07_lease_view.dart';
 import '../features/tenant/t10_pay_rent.dart';
-import '../features/tenant/t11_payment_method.dart';
-import '../features/tenant/t12_payment_confirmation.dart';
-import '../features/tenant/t13_receipt_detail.dart';
-import '../features/tenant/t14_receipts.dart';
-import '../features/tenant/t20_create_ticket.dart';
-import '../features/tenant/t21_ticket_list.dart';
-import '../features/tenant/t22_ticket_detail.dart';
-import '../features/tenant/t23_tenant_settings.dart';
-// Contractor
-import '../features/contractor/c04_contractor_profile.dart';
+// Contractor (MVP keeps only core jobs feed)
 import '../features/contractor/c10_jobs_feed.dart';
-import '../features/contractor/c20_job_detail.dart';
-import '../features/contractor/c21_submit_bid.dart';
-import '../features/contractor/c30_earnings.dart';
-// Guard
+// Guard (MVP keeps only core approvals queue)
 import '../features/guard/s10_approvals_queue.dart';
-import '../features/guard/s11_approval_detail.dart';
-import '../features/guard/s20_entry_log.dart';
-import '../features/guard/s30_guard_settings.dart';
-// Investor
-import '../features/investor/i12_portfolio_summary.dart';
 // Auth
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
@@ -86,9 +63,6 @@ Map<String, WidgetBuilder> buildRoutes() {
   routes['/I-02'] = (_) => const RegisterScreen();
   routes['/A-01'] = (_) => const LoginScreen();
   routes['/A-02'] = (_) => const RegisterScreen();
-
-  // --- Debug / UI test (reachable only from kDebugMode login screen) ---
-  routes['/debug-ui'] = (_) => const DebugUiMenuScreen();
 
   // --- Common ---
   routes['/profile'] = (_) => const ProfileScreen();
@@ -142,24 +116,11 @@ Map<String, WidgetBuilder> buildRoutes() {
     return LeasePacketSendInviteScreen(packetId: packetId);
   };
   routes['/L-30'] = (_) => const MaintenanceInboxScreen();
-  routes['/L-31'] = (_) => const TicketDetailScreen();
-  routes['/L-33'] = (_) => const LandlordCreateTicketScreen();
-  routes['/L-35'] = (_) => const AssignContractorScreen();
-  routes['/L-38'] = (_) => const LandlordSettingsScreen();
   routes['/L-45'] = (_) => const LandlordTransferInboxScreen();
 
   // --- Tenant ---
   routes['/T-06'] = (_) => const TenantDashboardScreen();
-  routes['/T-07'] = (_) => const LeaseViewScreen();
   routes['/T-10'] = (_) => const PayRentScreen();
-  routes['/T-11'] = (_) => const PaymentMethodScreen();
-  routes['/T-12'] = (_) => const PaymentConfirmationScreen();
-  routes['/T-13'] = (_) => const ReceiptDetailScreen();
-  routes['/T-14'] = (_) => const ReceiptsScreen();
-  routes['/T-20'] = (_) => const CreateTicketScreen();
-  routes['/T-21'] = (_) => const TenantTicketListScreen();
-  routes['/T-22'] = (_) => const TenantTicketDetailScreen();
-  routes['/T-23'] = (_) => const TenantSettingsScreen();
   routes['/T-45'] = (_) => const TenantProfileExportScreen();
   routes['/T-45/request'] = (_) => const TenantTransferRequestScreen();
   routes['/T-50'] = (_) => const TenantHouseholdScreen();
@@ -187,20 +148,10 @@ Map<String, WidgetBuilder> buildRoutes() {
   };
 
   // --- Contractor ---
-  routes['/C-04'] = (_) => const ContractorProfileScreen();
   routes['/C-10'] = (_) => const ContractorJobsFeedScreen();
-  routes['/C-20'] = (_) => const JobDetailScreen();
-  routes['/C-21'] = (_) => const SubmitBidScreen();
-  routes['/C-30'] = (_) => const EarningsDashboardScreen();
 
   // --- Guard ---
   routes['/S-10'] = (_) => const GuardApprovalsQueueScreen();
-  routes['/S-11'] = (_) => const ApprovalDetailScreen();
-  routes['/S-20'] = (_) => const EntryLogScreen();
-  routes['/S-30'] = (_) => const GuardSettingsScreen();
-
-  // --- Investor ---
-  routes['/I-12'] = (_) => const PortfolioSummaryScreen();
 
   // --- Community ---
   routes['/community'] = (_) => const CommunityHomeScreen(isLandlord: false);
